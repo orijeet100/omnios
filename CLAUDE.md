@@ -80,10 +80,12 @@ never read the mock's internals directly; they go through those two files. When
 a real backend exists, replace the mock calls in those two files with API calls
 that return the shapes in `src/contracts`.
 
-A day is **abnormal** (drawn red) when the weekly check says that week is `off`
-for the metric. The weekly check is "weekly average at or beyond a threshold",
-defined in `src/contracts/checks.ts`. Keep the dashboard counts and the chart
-colors derived from the same flags so they never disagree.
+The dashboard counts and the card arrows come from the **weekly check**
+("weekly average at or beyond a threshold", `src/contracts/checks.ts`). In the
+charts, a **day is red exactly when it is past the dashed line**, which is
+always labelled **Target** ("Target 140"). So a chart can show a few red days in
+a week that is not counted. Use the shared vocabulary in `docs/design-brief.md`
+section 5: say "target" (never "limit", "baseline" or "threshold") in the UI.
 
 ## Conventions
 
@@ -93,9 +95,9 @@ colors derived from the same flags so they never disagree.
   font (Inter), the fixed type scale, minimal text (no explanation paragraphs),
   red only for abnormal values. Reuse `ui/` components; add shadcn primitives
   only when needed.
-- **Cards show arrows, not graphs.** Graphs live only in the patient modal
+- **Cards show markers, not graphs.** Graphs live only in the patient modal
   (Recharts), one tab per device. Keep one chart style (design brief rule 25).
-  Red = outside the normal range, green = normal; nothing else is red or green.
+  Red arrow = past target, green dot = on target; nothing else is red or green. Device tabs use the brand logos in `public/images` (`features/patients/device-logo.tsx`).
 - **Clean code:** small functions, named constants instead of magic numbers,
   meaningful names, no dead code. Prefer simple, readable code over cleverness.
 - **Mock determinism:** the order of random draws is part of the seed's output.
