@@ -32,6 +32,11 @@ export const metricSchema = z.enum([
   'glucose_time_in_range',
   'glucose_overnight_lows',
   'weight',
+  // Body composition (Visualize AI, smart scales, DEXA)
+  'body_fat_pct',
+  'muscle_mass_kg',
+  'bone_mass_kg',
+  'waist_circumference_cm',
   // Platform-derived
   'wear_time',
 ])
@@ -151,6 +156,30 @@ export const METRICS: Record<Metric, MetricDef> = {
     unit: 'kg',
     plausible: [25, 300],
     conflictTolerance: 1.5,
+  },
+  body_fat_pct: {
+    label: 'Body fat percentage',
+    unit: '%',
+    plausible: [3, 70],
+    conflictTolerance: 3,
+  },
+  muscle_mass_kg: {
+    label: 'Muscle mass',
+    unit: 'kg',
+    plausible: [10, 120],
+    conflictTolerance: 2,
+  },
+  bone_mass_kg: {
+    label: 'Bone mass',
+    unit: 'kg',
+    plausible: [1, 10],
+    conflictTolerance: 0.5,
+  },
+  waist_circumference_cm: {
+    label: 'Waist circumference',
+    unit: 'cm',
+    plausible: [50, 200],
+    conflictTolerance: 5,
   },
   wear_time: {
     label: 'Wear time',
