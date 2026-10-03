@@ -180,6 +180,8 @@ source_device, source_vendor, quality_flag, ingested_at
 
 **Patient chart table (mock EHR context):** `patient_id, name (synthetic), age, sex, conditions[], medications[], last_a1c, last_bp_clinic, last_visit_date, attributed_to_hospital`.
 
+> **EMR is display-only [DEFAULT]:** the chart (medications, labs, clinic vitals, encounters) lives on the EHR side and appears only on the clinician's context card. OmniOS analysis, risk, and insight notes do not use it; OmniOS keeps only a patient summary (identity and conditions). The mock still generates the chart from the same patient profile as the device data so the two stay consistent. The exact shape is in `src/contracts/entities.ts`.
+
 **Worklist table:** `patient_id, risk_score, risk_tier, status, routed_at, snooze_until, risk_at_routing, last_updated, insight_note_id`.
 
 **Audit log:** `event_id, timestamp, actor_role, actor_id, patient_id, action, detail`.
@@ -216,6 +218,7 @@ Keep it realistic, not clinically validated.
 - **Personal baselines:** rolling 14 to 30 day median per patient per metric. Deviation from the patient's own norm matters more than raw values.
 - **Composite deviation score:** weighted z-scores across relevant metrics, with weights depending on the condition (BP and resting HR for hypertension, glucose variability and overnight lows for diabetes, respiratory rate and SpO2 for COPD).
 - **Trend features:** 3 to 7 day slope, variability, count of days or nights out of range.
+- **Weekly check [DEFAULT]:** the simplest "looks off" rule. For each patient, metric and calendar week, take the weekly average; at or beyond a threshold means `off`, and fewer than 3 days of data means `insufficient_data`. BP and glucose checks map to the contract measures; resting HR, HRV, respiratory rate, and SpO2 (against the patient's own baseline) are ER early-warning signals. Patients are grouped into fixed segments (BP, glucose, recovery signals, data gap) shown as **counts only**. Thresholds are placeholders **[VERIFY]**. Rules and thresholds live in `src/contracts/checks.ts`.
 - **Data confidence:** driven by wear time, gaps, source agreement, and flagged implausible values. Low confidence must visibly dampen alerting and show in the UI.
 - **Risk tiers:** e.g. Low / Watch / High / Critical, with a ranked worklist.
 - **Alert quality** against planted events: true positives, false alarms, and lead time before the ER event.
@@ -292,6 +295,7 @@ If time runs short, cut in this order: closed loop, polish on the EHR mock, opti
 - **Do not claim** a real EHR, device-API, or Medicaid-program integration anywhere in the UI or docs.
 - **Do not use** real patient data, real people's names, or any real vendor's EHR branding in the mock.
 - **Do not name** drugs, doses, or specific treatments in any insight text.
+- Segments and cohort views show **counts, never dollars**, and the worklist is **never ranked by contract or measure value**, only by clinical risk.
 - Keep the **risk score honest**: status changes must never alter risk values.
 - Prefer simple, readable code over cleverness. This is a one-day demo.
 - When something here is marked **[VERIFY]** or **[DEFAULT]**, flag it to the user instead of silently deciding.

@@ -1,4 +1,5 @@
 export * from './metrics'
 export * from './sources'
+export * from './checks'
 export * from './entities'
 export * from './api'

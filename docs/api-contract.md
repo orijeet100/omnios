@@ -24,6 +24,8 @@ Observation                   canonical daily value from ONE source, quality-fla
 ResolvedMetric                the unified value + candidates[] + conflict flag
    │   analysis (backend)
 MetricDeviation, DataConfidence, RiskAssessment
+   │   weekly check (simple threshold on the weekly average)
+WeeklyFlag  ->  Segment       "BP above target", "Glucose time in range low", ... (counts)
    │   insight
 InsightNote                   structured features -> prose (the only AI step)
    │
@@ -58,9 +60,12 @@ Do **not** convert between HRV definitions. `hrv_sdnn` (Apple) and `hrv_rmssd` (
 | `GET /sync-runs` | read | Sync history, filterable by patient |
 | `GET /patients/:id/observations` | read | Per-source daily values, before resolution (multi-device overlay) |
 | `GET /patients/:id/resolved` | read | Unified daily series after resolution, with conflicts |
-| `GET /patients/:id` | read | Chart, risk, confidence, deviations, worklist item |
+| `GET /patients/:id` | read | Patient summary (identity + conditions), risk, confidence, deviations, worklist item |
+| `GET /ehr/patients/:id/chart` | read | **EHR side only**: full clinical chart for the clinician context card |
 | `GET /cohort/summary` | read | "N patients trending toward X" and tier counts |
-| `GET /worklist` | read | Ranked worklist, filter by tier / status |
+| `GET /cohort/segments` | read | Weekly check results as counts per segment (BP, glucose, recovery signals, data gap) |
+| `GET /patients/:id/weekly-flags` | read | One patient's weekly verdicts per metric |
+| `GET /worklist` | read | Worklist ranked by clinical risk only; filter by tier, status, or segment |
 | `GET /patients/:id/insight` | read | Current insight note |
 | `POST /insights/generate` | **ai** | Features in, prose out |
 | `POST /patients/:id/route` | action | Snooze + EHR notification |
@@ -78,6 +83,40 @@ Full request and response schemas are in [`src/contracts/api.ts`](../src/contrac
 - **Input** (`InsightFeatures`): computed features only: changes vs baseline, window, confidence reasons, sources, risk tier. No raw observations, no free text from users.
 - **Output** (`InsightText`): `what_changed`, `versus_baseline`, `window`, `confidence`, `sources`, `suggestion`.
 - **Guardrails** (backend enforces): generic suggestions only ("flag for clinician review", "consider medication review", "consider outreach"). Reject any output naming a drug, dose, or treatment, and fall back to a rules-based template. The LLM never changes numbers, tier, or risk.
+
+## The weekly check and segments
+
+The simplest possible "does this look off?" rule, defined in [`src/contracts/checks.ts`](../src/contracts/checks.ts):
+
+> For each patient, metric and calendar week (Monday start, patient local), take the **weekly average**. If it is at or beyond the threshold, the week is `off`. With fewer than 3 days of readings it is `insufficient_data` and we make no claim.
+
+| Check | Rule (placeholders **[VERIFY]**) | Segment | Contract tie |
+|---|---|---|---|
+| BP | Avg systolic >= 140 or avg diastolic >= 90 | `bp_off` | Contract measure: BP control |
+| Glucose | Avg time in range < 70% | `glucose_off` | Contract measure: glucose control |
+| Resting HR | 7+ bpm above own 30-day median | `recovery_off` | ER early warning |
+| HRV | 15%+ below own 30-day median | `recovery_off` | ER early warning |
+| Resp rate | 2+ br/min above own baseline | `recovery_off` | ER early warning |
+| SpO2 | 3+ points below own baseline | `recovery_off` | ER early warning |
+| Too little data | < 3 days with readings | `data_gap` | Data quality |
+
+A **segment** is just the set of patients `off` in a group of checks for a week, returned as counts (`patient_count` of `evaluated_count`) plus patient ids. The "N patients trending toward elevated BP" headline is derived from these counts.
+
+Tie meanings: **contract_measure** is something the contract rewards improving; **er_early_warning** is not a measure but a leading indicator for ER visits (which the contract rewards); **data_quality** means we cannot see the patient, so it is not a clinical finding.
+
+**Hard rules:**
+- **No dollars.** Segments show counts and progress only. The funding story is spoken, not a screen.
+- **Never rank by contract value.** The worklist stays ordered by clinical risk, so the sickest patients are not pushed down for being harder to improve. `segment` on `GET /worklist` only filters.
+- Segments are returned in a fixed order, not sorted by size or value.
+
+## EMR data is display-only
+
+The full clinical record (`PatientChart`: medications, labs, clinic vitals, encounters) belongs to the **EHR side**. It is served by `GET /ehr/patients/:id/chart` and shown only on the clinician's patient context card. **OmniOS screens, risk, and insight notes never read it.** The OmniOS side gets a `PatientSummary` (name, age, sex, conditions, attribution) so care managers can identify and group patients.
+
+- `conditions` is a closed list (`hypertension`, `t2_diabetes`, `heart_failure`, `copd`), shown with `CONDITION_LABELS`. ICD-10 codes are intentionally absent until verified **[VERIFY]**.
+- `medications` are drug **classes** only, with no brand names or doses **[DEFAULT]**.
+- The mock generates the chart from the **same patient profile** as the device data so the two layers agree (for example A1c vs mean CGM glucose, clinic BP vs home BP, an ER encounter after a planted true-positive story). That coherence is a mock-generator concern, not an API concern.
+- Planted-story ground truth (ER dates, expected flag dates) is mock-only and is not part of this contract.
 
 ## Rules the contract encodes
 

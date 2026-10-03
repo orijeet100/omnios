@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { segmentIdSchema } from './checks'
 import {
   auditEventSchema,
   clinicianActionSchema,
@@ -11,11 +12,14 @@ import {
   notificationSchema,
   observationSchema,
   patientChartSchema,
+  patientSummarySchema,
   resolvedSeriesSchema,
   riskAssessmentSchema,
   riskTierSchema,
+  segmentSchema,
   sourceConnectionSchema,
   syncRunSchema,
+  weeklyFlagSchema,
   worklistItemSchema,
   worklistStatusSchema,
 } from './entities'
@@ -106,12 +110,20 @@ export const endpoints = {
     method: 'GET',
     path: '/patients/:patientId',
     response: z.object({
-      chart: patientChartSchema,
+      patient: patientSummarySchema,
       risk: riskAssessmentSchema,
       confidence: dataConfidenceSchema,
       deviations: z.array(metricDeviationSchema),
       worklist: worklistItemSchema,
     }),
+  },
+  getEhrChart: {
+    kind: 'read',
+    method: 'GET',
+    path: '/ehr/patients/:patientId/chart',
+    description:
+      'EHR-side only: the clinician patient context card. OmniOS screens do not call this.',
+    response: patientChartSchema,
   },
   getCohortSummary: {
     kind: 'read',
@@ -124,15 +136,39 @@ export const endpoints = {
       trends: z.array(cohortTrendSchema),
     }),
   },
+  getCohortSegments: {
+    kind: 'read',
+    method: 'GET',
+    path: '/cohort/segments',
+    description:
+      'Weekly check results as counts per fixed segment (BP, glucose, recovery signals, data gap). ' +
+      'Default week is the latest complete week. Fixed order, never ranked by contract value; no dollars.',
+    query: z.object({ week_start: date.optional() }),
+    response: z.object({
+      week_start: date,
+      patient_count: z.number().int(),
+      segments: z.array(segmentSchema),
+    }),
+  },
+  getPatientWeeklyFlags: {
+    kind: 'read',
+    method: 'GET',
+    path: '/patients/:patientId/weekly-flags',
+    query: z.object({ ...range }),
+    response: z.array(weeklyFlagSchema),
+  },
   listWorklist: {
     kind: 'read',
     method: 'GET',
     path: '/worklist',
     description:
-      'Ranked: re_escalated first, then new by risk_score. Snoozed (routed) patients sort below.',
+      'Ranked by clinical risk only: re_escalated first, then by risk_score. Snoozed (routed) patients sort below. ' +
+      'Never ranked by contract or measure value. `segment` only filters the list.',
     query: z.object({
       tier: riskTierSchema.optional(),
       status: worklistStatusSchema.optional(),
+      segment: segmentIdSchema.optional(),
+      week_start: date.optional(),
     }),
     response: z.array(worklistItemSchema),
   },

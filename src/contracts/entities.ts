@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ruleKindSchema, segmentIdSchema, segmentTieSchema } from './checks'
 import { metricSchema } from './metrics'
 import { sourceIdSchema } from './sources'
 
@@ -183,19 +184,72 @@ export type RiskAssessment = z.infer<typeof riskAssessmentSchema>
 // 4. Patient, insight, worklist
 // ---------------------------------------------------------------------------
 
-/** Mock EHR context. All patients are synthetic. */
-export const patientChartSchema = z.object({
+/** Closed list so scoring and device generation never depend on spelling. */
+export const conditionCodeSchema = z.enum([
+  'hypertension',
+  't2_diabetes',
+  'heart_failure',
+  'copd',
+])
+export type ConditionCode = z.infer<typeof conditionCodeSchema>
+
+export const CONDITION_LABELS: Record<ConditionCode, string> = {
+  hypertension: 'Hypertension',
+  t2_diabetes: 'Type 2 diabetes',
+  heart_failure: 'Heart failure',
+  copd: 'COPD',
+}
+
+/**
+ * What the OmniOS platform knows about a patient: identity and cohort
+ * conditions only. The rest of the clinical record stays in the EHR
+ * (see patientChartSchema). All patients are synthetic.
+ */
+export const patientSummarySchema = z.object({
   patient_id: z.string(),
   name: z.string(),
   age: z.number().int(),
   sex: z.enum(['F', 'M']),
-  timezone: z.string(),
-  conditions: z.array(z.string()),
-  medications: z.array(z.string()),
-  last_a1c: z.number().nullable(),
-  last_bp_clinic: z.string().nullable(),
-  last_visit_date: date.nullable(),
+  conditions: z.array(conditionCodeSchema),
   attributed_to_hospital: z.boolean(),
+})
+export type PatientSummary = z.infer<typeof patientSummarySchema>
+
+/**
+ * Mock EHR record, EHR-side only (clinician's patient context card). OmniOS
+ * analysis and risk never read this; it is display-only. Generated from the
+ * same patient profile as the device data so the two stay consistent
+ * (e.g. A1c vs mean CGM glucose, clinic BP vs home BP).
+ */
+export const patientChartSchema = patientSummarySchema.extend({
+  timezone: z.string(),
+  /** Drug CLASS only, e.g. "ACE inhibitor". No brand names, no doses [DEFAULT]. */
+  medications: z.array(z.object({ label: z.string(), started: date })),
+  labs: z.array(
+    z.object({
+      name: z.enum(['a1c', 'egfr', 'potassium']),
+      value: z.number(),
+      unit: z.string(),
+      date,
+    })
+  ),
+  /** Latest vitals measured at a clinic visit (not from devices). */
+  clinic_vitals: z
+    .object({
+      date,
+      bp_systolic: z.number(),
+      bp_diastolic: z.number(),
+      weight_kg: z.number(),
+    })
+    .nullable(),
+  encounters: z.array(
+    z.object({
+      id: z.string(),
+      type: z.enum(['office', 'telehealth', 'er', 'inpatient']),
+      date,
+      reason: z.string(),
+    })
+  ),
 })
 export type PatientChart = z.infer<typeof patientChartSchema>
 
@@ -268,7 +322,7 @@ export const worklistItemSchema = z.object({
   patient_id: z.string(),
   name: z.string(),
   age: z.number().int(),
-  conditions: z.array(z.string()),
+  conditions: z.array(conditionCodeSchema),
   risk_score: z.number().min(0).max(100),
   risk_tier: riskTierSchema,
   risk_trend: z.enum(['up', 'flat', 'down']),
@@ -295,6 +349,49 @@ export const cohortTrendSchema = z.object({
   ),
 })
 export type CohortTrend = z.infer<typeof cohortTrendSchema>
+
+// ---------------------------------------------------------------------------
+// 4b. Weekly check and segments (see checks.ts for the rules)
+// ---------------------------------------------------------------------------
+
+export const weeklyFlagStatusSchema = z.enum(['off', 'ok', 'insufficient_data'])
+export type WeeklyFlagStatus = z.infer<typeof weeklyFlagStatusSchema>
+
+/**
+ * One metric's verdict for one patient for one calendar week. The whole rule
+ * is: weekly average at or beyond the threshold means `off`.
+ */
+export const weeklyFlagSchema = z.object({
+  patient_id: z.string(),
+  /** Monday of the week, patient local date. */
+  week_start: date,
+  metric: metricSchema,
+  /** Null when there is no data that week. */
+  weekly_avg: z.number().nullable(),
+  /** The patient's own 30-day median; set only for baseline_delta rules. */
+  baseline: z.number().nullable(),
+  rule_kind: ruleKindSchema,
+  threshold: z.number(),
+  days_with_data: z.number().int(),
+  status: weeklyFlagStatusSchema,
+})
+export type WeeklyFlag = z.infer<typeof weeklyFlagSchema>
+
+/**
+ * A fixed group of patients flagged for the same reason in a given week.
+ * Counts only, never dollars, and never ranked by contract value.
+ */
+export const segmentSchema = z.object({
+  id: segmentIdSchema,
+  label: z.string(),
+  ties_to: segmentTieSchema,
+  /** Patients `off` in this segment this week (for data_gap: patients with insufficient data). */
+  patient_count: z.number().int(),
+  /** Patients with enough data to be judged on this segment's checks. */
+  evaluated_count: z.number().int(),
+  patient_ids: z.array(z.string()),
+})
+export type Segment = z.infer<typeof segmentSchema>
 
 // ---------------------------------------------------------------------------
 // 5. EHR mock and audit
