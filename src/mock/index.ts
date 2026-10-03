@@ -140,3 +140,5 @@ export function getDataset(): Dataset {
 }
 
 export { computeSegments } from './weekly'
+export { generateObservations } from './generate'
+export { resolve } from './resolve'

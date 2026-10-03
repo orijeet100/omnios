@@ -1,5 +1,9 @@
-import type { Metric, MetricDeviation, ResolvedMetric } from '../contracts'
-import { METRICS } from '../contracts'
+import {
+  METRICS,
+  type Metric,
+  type MetricDeviation,
+  type ResolvedMetric,
+} from '../contracts'
 import { getPlausibleRange } from './baselines'
 import { clamp, linearSlope, mean, roundTenth, stdDev } from './stats'
 

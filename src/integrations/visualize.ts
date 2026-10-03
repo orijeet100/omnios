@@ -1,5 +1,4 @@
 import type { Observation } from '../contracts'
-import { METRICS } from '../contracts'
 import type { PatientProfile } from '../mock/types'
 import { mulberry32, hashSeed, normal } from '../mock/random'
 

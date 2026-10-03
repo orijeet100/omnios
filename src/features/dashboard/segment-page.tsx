@@ -1,7 +1,6 @@
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { NotFoundError } from '@/features/errors/not-found-error'
 import { PatientDialog } from '@/features/patients/patient-dialog'
@@ -21,7 +20,6 @@ export function SegmentPage() {
 
   return (
     <>
-      <AppHeader />
       <Main className='space-y-6'>
         <div className='space-y-3'>
           <Button asChild variant='ghost' size='sm' className='-ms-3'>
