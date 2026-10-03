@@ -5,23 +5,20 @@ import {
   ChevronRight,
   Droplet,
   Gauge,
-  WifiOff,
   type LucideIcon,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import type { SegmentCardData } from './segments'
 
-const ICONS: Record<SegmentId, LucideIcon> = {
+const ICONS: Partial<Record<SegmentId, LucideIcon>> = {
   bp_off: Gauge,
   glucose_off: Droplet,
   recovery_off: Activity,
-  data_gap: WifiOff,
 }
 
-/** A category of patients as one wide card that links to the patients in it. */
+/** A category of patients as one wide card: icon, name, count. Links to the patients in it. */
 export function SegmentRow({ segment }: { segment: SegmentCardData }) {
-  const Icon = ICONS[segment.id]
+  const Icon = ICONS[segment.id] ?? Activity
   return (
     <Link
       to='/segments/$segmentId'
@@ -32,15 +29,9 @@ export function SegmentRow({ segment }: { segment: SegmentCardData }) {
         <div className='flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground'>
           <Icon className='size-5' />
         </div>
-        <div className='min-w-0 flex-1'>
-          <div className='leading-tight font-semibold'>{segment.label}</div>
-          <div className='text-xs whitespace-nowrap text-muted-foreground'>
-            of {segment.evaluated} checked
-          </div>
+        <div className='min-w-0 flex-1 leading-tight font-semibold'>
+          {segment.label}
         </div>
-        <Badge variant='outline' className='hidden sm:inline-flex'>
-          {segment.tieLabel}
-        </Badge>
         <div className='min-w-10 text-end text-3xl font-bold tabular-nums'>
           {segment.count}
         </div>

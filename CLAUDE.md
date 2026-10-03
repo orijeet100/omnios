@@ -13,7 +13,7 @@ standing in for a backend that does not exist yet. Everything is synthetic.
 | File | Why |
 |---|---|
 | `context.md` | Source of truth for the product, users and the non-negotiable rules. |
-| `docs/design-brief.md` | The 22 rules every screen must follow (type scale, tokens, charts). |
+| `docs/design-brief.md` | The 25 rules every screen must follow (type scale, tokens, arrows, modal, charts). |
 | `docs/api-contract.md` + `src/contracts/` | The backend contract. The mock and the real backend must both match it. |
 | `src/mock/README.md` | The data generator: what to port, what is scaffolding. |
 
@@ -30,8 +30,10 @@ These come from `context.md`. Do not break them.
   score.
 - **EMR is display-only.** The chart (`PatientChart`) belongs to the EHR side
   and is never used by OmniOS analysis.
-- **Label the data.** The header always shows a "Synthetic data" badge. Never
-  claim a real EHR, device or Medicaid integration.
+- **Be honest about the demo.** All patients and data are synthetic. By the
+  owner's decision the UI no longer shows a "Synthetic data" badge, so never
+  describe this data as real patient data, and never claim a real EHR, device or
+  Medicaid integration.
 - **Do not build** a leadership/finance view, a clinician-facing OmniOS app, or
   any patient-facing UI.
 - Items marked **[VERIFY]** or **[DEFAULT]** in the docs are placeholders:
@@ -58,8 +60,8 @@ src/
   contracts/      zod schemas + endpoint table (the backend contract)
   mock/           seeded synthetic data + unify + weekly check (see its README)
   features/
-    dashboard/    dashboard rows, segment page, segment data helper
-    patients/     all-patients page, tile, trend chart, sparkline, modal, data helper
+    dashboard/    dashboard rows, category page, category data helper
+    patients/     all-patients page + search, patient card, arrows, avatar, modal, chart, data helper
     errors/       not-found and general error screens
   components/
     layout/       app shell: sidebar, header, main
@@ -91,16 +93,19 @@ colors derived from the same flags so they never disagree.
   font (Inter), the fixed type scale, minimal text (no explanation paragraphs),
   red only for abnormal values. Reuse `ui/` components; add shadcn primitives
   only when needed.
-- **Charts:** Recharts for the modal chart, the plain SVG `Sparkline` for card
-  trends (a page shows hundreds). Keep one chart style (design brief rules
-  21-22).
+- **Cards show arrows, not graphs.** Graphs live only in the patient modal
+  (Recharts), one tab per device. Keep one chart style (design brief rule 25).
+  Red = outside the normal range, green = normal; nothing else is red or green.
 - **Clean code:** small functions, named constants instead of magic numbers,
   meaningful names, no dead code. Prefer simple, readable code over cleverness.
 - **Mock determinism:** the order of random draws is part of the seed's output.
   Do not reorder draws in `src/mock/{cohort,generate,chart}.ts` without
   retuning the tests.
 - Modal state lives in the URL (`?patient=<id>`), so it is linkable and the
-  Back button closes it.
+  Back button closes it. The same `PatientDialog` is used by every page.
+- "Not enough data" (`data_gap`) exists in the contract and generator but is
+  deliberately not shown on the dashboard (it is a data-quality signal, not an
+  abnormality).
 
 ## Gotchas
 
@@ -122,11 +127,15 @@ colors derived from the same flags so they never disagree.
 
 ## Current status and next steps
 
-Built: contracts, synthetic data generator (100 patients, tested), dashboard,
-segment pages, all-patients page, patient modal with charts.
+Built: contracts, synthetic data generator (100 patients, tested), dashboard
+(3 categories, counts only), category pages, all-patients page with search, and
+the patient modal (per-device charts).
 
 Not built yet (see `context.md` sections 6 and 13): risk score and tiers,
 insight notes, worklist with status lifecycle, "Route to clinician" flow, the
 EHR mockup and closed loop, re-escalation, audit log, a real API adapter.
-**Send to doctor** and **Dismiss** in the patient modal are placeholders that do
-nothing.
+**Send to doctor** in the patient modal is a placeholder that does nothing
+(Dismiss closes the modal). Patient photos are placeholders: `PatientAvatar` shows
+a stock portrait from randomuser.me chosen by sex and patient id
+(`features/patients/avatar.ts`; needs internet, falls back to a person icon).
+Pass `photoUrl` to use a real photo.

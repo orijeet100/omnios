@@ -5,22 +5,19 @@ Tailwind v4). This brief says what we keep from it, what we add, and the rules
 every screen must follow. It exists so the UI stays consistent and so a
 reviewer can check a screen against a short list.
 
-## 1. What the template already defines (we keep this)
+## 1. What the template defines (we keep this)
 
-| Area | What is there today | Where |
+| Area | What is there | Where |
 |---|---|---|
-| **Color** | Neutral slate palette as semantic tokens in OKLCH: `background`, `foreground`, `card`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `ring`, `chart-1..5`, `sidebar-*`. Light and dark values for each. | `src/styles/theme.css` |
-| **Font** | Inter for everything (Manrope and a system option exist but are not needed). | `index.html`, `src/styles/index.css` |
+| **Color** | Neutral slate palette as semantic tokens in OKLCH: `background`, `foreground`, `card`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `ring`, `chart-1..5`, `sidebar-*`. Light and dark values for each. We added one: `success` (green). | `src/styles/theme.css` |
+| **Font** | Inter for everything. | `index.html`, `theme.css` |
 | **Radius** | One base radius, `0.625rem`. Cards use `rounded-xl`, buttons and badges `rounded-md`. | `theme.css`, `ui/card.tsx` |
-| **Page title** | `text-2xl font-bold tracking-tight` | dashboard, users, tasks |
-| **Section title** | `text-lg font-semibold tracking-tight` or `text-lg font-medium` | settings, chats |
-| **Card title** | `font-semibold leading-none`; stat cards use `text-sm font-medium` | `ui/card.tsx`, dashboard |
-| **Big number** | `text-2xl font-bold` | dashboard stat cards |
+| **Page title** | `text-2xl font-bold tracking-tight` | every page |
+| **Card title** | `font-semibold` | `ui/card.tsx` |
 | **Body / helper** | `text-sm`, with secondary text `text-sm text-muted-foreground`; captions `text-xs text-muted-foreground` | everywhere |
-| **Spacing** | Page padding `px-4 py-6`, max width `max-w-7xl`, header `h-16`, grids `gap-4`, card padding `p-6` with `gap-6` | `layout/main.tsx`, `layout/header.tsx`, `ui/card.tsx` |
+| **Spacing** | Page padding `px-4 py-6`, max width `max-w-7xl`, header `h-16`, grids `gap-4` | `layout/main.tsx`, `layout/header.tsx` |
 | **Layout** | Inset sidebar (16rem, collapses to icons), header with sidebar trigger, content in `<Main>` | `layout/*`, `ui/sidebar.tsx` |
-| **Grid** | Stat cards: 1 column, 2 at `sm`, 4 at `lg` | dashboard |
-| **Status** | Badge variants `default / secondary / outline / destructive`; no success or warning color exists | `ui/badge.tsx` |
+| **Status** | Badge variants `default / secondary / outline / destructive` | `ui/badge.tsx` |
 | **Dark mode** | Class-based, light / dark / system, via the theme provider | `context/theme-provider.tsx` |
 
 ## 2. Constraint rules
@@ -31,8 +28,8 @@ medical constraints in `context.md`.
 ### Visual
 
 1. **Tokens only.** Use the semantic Tailwind tokens (`bg-card`,
-   `text-muted-foreground`, `border`, ...). No hex, rgb or hard-coded colors,
-   and no new color tokens.
+   `text-muted-foreground`, `text-success`, ...). No hex, rgb or hard-coded
+   colors. The only token we added to the template is `success`.
 2. **One font: Inter.** Numbers that line up in columns or cards use
    `tabular-nums`.
 3. **Fixed type scale.** Only these sizes, with these jobs:
@@ -41,94 +38,110 @@ medical constraints in `context.md`.
    |---|---|
    | Page title (`h1`, one per page) | `text-2xl font-bold tracking-tight` |
    | Page subtitle | `text-sm text-muted-foreground` |
-   | Card title | `text-base font-semibold` |
+   | Name on a card or modal | `font-semibold` (modal: `text-lg`) |
    | Big number | `text-3xl font-bold tabular-nums` |
    | Label / body | `text-sm` (`font-medium` for labels) |
    | Caption / metadata | `text-xs text-muted-foreground` |
 
    No other sizes. No sizes bigger than `text-3xl`.
-4. **One heading level per job.** Page title is `h1`, card titles are `h2`
-   (or `h3` inside a card that already has an `h2`). Never skip a level.
+4. **One heading level per job.** The page title is `h1`; modal chart titles
+   are `h3` under the modal title. Interactive cards use plain text, not
+   headings. Never skip a level.
 5. **Spacing from the template scale.** Grids use `gap-4`, page sections
-   `space-y-6`, cards keep their built-in padding. No arbitrary pixel values.
+   `space-y-6`. No arbitrary pixel values.
 6. **Radius from the template.** Cards `rounded-xl`, badges and buttons
-   `rounded-md`. No custom radii.
+   `rounded-md`, avatars fully round. No custom radii.
 7. **Reuse components.** Build screens from `Card`, `Badge`, `Button`,
-   `Dialog`, `Skeleton` and the sidebar parts that already exist. Icons come
-   only from `lucide-react`, at `size-4`, muted. Charts use Recharts; the small
-   trend lines on cards are a plain SVG `Sparkline`, because a page can show
-   hundreds of them.
-8. **Color is never the only signal.** Anything flagged also carries text, a
-   number or an icon. `destructive` (red) is reserved for abnormal values and
-   the abnormal stretch of a line. Nothing else is red.
+   `Dialog`, `Tabs`, `Avatar`, `Input` and the sidebar parts that already
+   exist. Icons come only from `lucide-react`. Charts use Recharts.
+8. **Color is never the only signal.** Anything flagged also carries an arrow,
+   a label or a number. **Red** (`destructive`) means outside the normal range,
+   and is used for arrows, values and the abnormal part of a chart line.
+   **Green** (`success`) means normal, and is used only for the "normal" arrow.
+   Nothing else is red or green.
 9. **Dark mode comes free.** Because of rule 1, no `dark:` overrides in
    screens.
 
 ### Layout and interaction
 
 10. **One shell.** Inset sidebar with two items (Dashboard, All patients), a
-    sticky header with the sidebar trigger, the "Synthetic data" badge and the
-    theme switch, and content in `<Main>` (max width `7xl`).
+    sticky header with the sidebar trigger and the theme switch, and content in
+    `<Main>` (max width `7xl`).
 11. **Clickable means obvious.** A card that navigates is a real link; a card
     that opens a modal is a real `<button>`. Both are keyboard focusable with a
     visible focus ring, and both shift to `bg-accent` on hover.
-12. **Responsive grid.** Patient tiles use 1 column on mobile, 2 from 480px,
-    3 at `lg` and 4 at `xl`, with `gap-4`. Segment rows are full-width.
-13. **Every list handles empty and loading.** An empty segment says so in plain
-    words. Data that is slow shows a `Skeleton`, not a blank screen.
+12. **Responsive grid.** Patient cards use 1 column on mobile, 2 from 480px, 3
+    at `lg` and 4 at `xl`, with `gap-4`. Dashboard rows are full width.
+13. **Every list handles empty.** An empty list says so in a few words
+    ("No patients found.").
 
 ### Medical and product (from `context.md`)
 
-14. **Label the data.** The header always shows a "Synthetic data" badge.
-15. **Insight, never decision.** Copy says what changed and against what.
-    It never tells a clinician what to do, never names a drug, dose or
-    treatment, and never says "diagnosis".
-16. **Show the basis in the chart, not in prose.** A flagged measurement is
-    charted with its threshold as a dashed line ("Target 140") and its
-    abnormal weeks in red, so the reader sees why without a paragraph.
-17. **No dollars, no contract ranking.** No currency anywhere. Lists are in a
-    neutral, fixed order, never sorted by contract value or "easiest win".
-18. **Honest absence.** When there is too little data we say "Not enough data",
-    never a guess or a zero.
-19. **Plain language.** Short labels a care manager reads in a second. No
-    jargon like "z-score" or "baseline delta" on screen.
+14. **Be honest about the demo.** All patients and data are synthetic. The UI
+    has no "Synthetic data" badge (owner's decision), so never describe the data
+    as real, and never claim a real EHR, device or Medicaid integration.
+15. **Insight, never decision.** Copy says what is where. It never tells a
+    clinician what to do, never names a drug, dose or treatment, and never says
+    "diagnosis".
+16. **Show the basis in the chart, not in prose.** A measurement is charted
+    with its threshold as a dashed line ("Target 140") and its abnormal weeks in
+    red, so the reader sees why without a paragraph.
+17. **No dollars, no contract ranking.** No currency anywhere, no
+    "contract measure" tags. Lists are in a neutral fixed order (patient id),
+    never sorted by contract value or "easiest win".
+18. **Honest absence.** We never show a guess or a zero for missing data. A
+    measurement with too little data simply shows no arrow.
+19. **Plain language.** Short labels a care manager or a demo audience reads in
+    a second ("BP above normal", "Early warning signs"). No jargon like
+    "z-score" or "baseline delta".
 20. **Minimal text.** Titles, labels and numbers only. No explanation
-    paragraphs or helper copy on cards, rows or in modals.
+    paragraphs, helper copy, or "of N" counts on cards, rows or in modals.
 
-### Charts
+### Cards, arrows and the modal
 
-21. **One chart style.** The normal line is `--primary`, abnormal stretches are
+21. **Dashboard row.** Icon, category name, count, chevron. Nothing else.
+22. **Patient card.** A card with a photo (a stock portrait chosen by sex
+    and patient id; a person icon if it fails to load), name, `age · sex`, and arrows. No graphs on cards. The
+    photo is a single `PatientAvatar` component, so one change adds real
+    photos everywhere.
+23. **Arrows.** One small arrow per measurement, with its label: up or down in
+    red when outside the normal range, right in green when normal. A
+    measurement counts once (BP is one arrow even if both numbers are off).
+    Out-of-range arrows come first.
+24. **One patient modal for every page.** Header: photo, name, `age · sex`,
+    arrows. Body: one tab per device (Whoop, the BP cuff, the CGM, ...), a red
+    dot on any device with an out-of-range reading, opening on the first such
+    device. Each tab charts that device's measurements, out-of-range ones
+    first. Footer, centered: Dismiss (closes the modal) and Send to doctor
+    (placeholder, does nothing yet).
+25. **One chart style.** The normal line is `--primary`, abnormal stretches are
     `--destructive` and drawn on top, the threshold is a dashed
     `--muted-foreground` line labelled outside the plot, grid lines are
     `--border`, and hovering shows a tooltip with the date and value. A day is
     abnormal when the weekly check says its week is `off`, so red always
     matches the dashboard counts.
-22. **Modals show the measurement that is off.** The modal charts only the
-    measurements that put the patient in the segment (all of a patient's
-    abnormal ones), with two actions: Send to doctor and Dismiss.
 
 ## 3. Screens
 
 | Screen | Route | Content |
 |---|---|---|
-| **Dashboard** | `/` | Title "Patients showing abnormalities", then one wide horizontal card per segment (BP above target, Glucose time in range low, Recovery signals off, Not enough data) with its count. Each links to its patients. |
-| **Segment** | `/segments/<id>` | Square patient tiles for the patients who are off this week, each with small trend lines for the measurements that are off. Clicking a tile opens the patient modal (`?patient=<id>`). |
-| **All patients** | `/patients` | Square tiles for every patient with a trend line per measurement (BP, glucose, heart rate, HRV, SpO2 where they have the device). A red dot marks patients with an abnormality. Clicking a tile opens the same modal. |
-| **Patient modal** | `?patient=<id>` on either page | Charts of the off measurements (or the usual two for a patient with none), then Dismiss and Send to doctor. Both buttons are placeholders and do nothing yet. |
+| **Dashboard** | `/` | Title "Patients showing abnormalities", then one wide row per category: BP above normal, Glucose time in range low, Early warning signs. Each shows a count and links to its patients. |
+| **Category** | `/segments/<id>` | Square patient cards for the patients in that category; each card's arrows are the measurements that put them there. Clicking a card opens the patient modal. |
+| **All patients** | `/patients` | A search box (name, id, age, sex, condition, device; every word must match) and a square card for every patient with arrows for all their measurements. Clicking a card opens the patient modal. |
+| **Patient modal** | `?patient=<id>` on either page | See rule 24. Linkable, and the Back button closes it. |
 
-Not built: routing a patient to a clinician, the EHR mock, search, settings,
-sign-in. We add them as we go, using the rules above.
+"Not enough data" is a data-quality signal, not an abnormality, so it is not
+shown on the dashboard.
+
+Not built: routing a patient to a clinician, the EHR mock, settings, sign-in.
+We add them as we go, using the rules above.
 
 ## 4. Open questions
 
-- **Patient order within a segment.** For now patients are in a neutral fixed
-  order (by patient id). A clinical-risk order needs the risk score, which is
-  not built yet.
-- **Status colors.** The template has no success or warning color. We do not
-  add one until a screen truly needs it.
-- **Send to doctor and Dismiss.** Placeholders for now. When wired, they map to
-  the routing flow in `context.md` section 6.4 (worklist status changes, never
-  risk).
-- **Data gap in the dashboard.** "Not enough data" is listed with the
-  abnormality cards although it is a data-quality category, not an
-  abnormality. Move it if that reads wrong.
+- **Patient photos.** Stock portraits from randomuser.me stand in for now. They
+  are photos of real people used as placeholders, and they need internet.
+  Replace them with our own images by passing `photoUrl` to `PatientAvatar`.
+- **Send to doctor.** A placeholder. When wired, it maps to the routing flow in
+  `context.md` section 6.4 (worklist status changes, never risk).
+- **Patient order.** Neutral order by patient id for now. A clinical-risk order
+  needs the risk score, which is not built yet.
