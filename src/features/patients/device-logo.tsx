@@ -1,12 +1,7 @@
+import { Activity } from 'lucide-react'
 import { SOURCES, type SourceId } from '@/contracts'
 
-/**
- * Logo files in `public/images`, with a display height per logo. The files
- * differ in shape and padding (Oura has wide margins, Apple is tall, Dexcom
- * carries a tagline), so each gets the height that makes it look about the
- * same size as the others.
- */
-const LOGOS: Record<SourceId, { file: string; height: string }> = {
+const LOGOS: Partial<Record<SourceId, { file: string; height: string }>> = {
   apple_watch: { file: 'apple', height: 'h-6' },
   fitbit: { file: 'fitbit', height: 'h-4' },
   garmin: { file: 'garmin', height: 'h-4' },
@@ -18,13 +13,16 @@ const LOGOS: Record<SourceId, { file: string; height: string }> = {
   withings: { file: 'withings', height: 'h-3' },
 }
 
-/**
- * A device's brand logo. The logos are black, and some have a white
- * background, so they blend into the page: multiply in light mode (white
- * disappears), invert + screen in dark mode (black disappears).
- */
 export function DeviceLogo({ source }: { source: SourceId }) {
-  const { file, height } = LOGOS[source]
+  const entry = LOGOS[source]
+  if (!entry) {
+    return (
+      <div className='flex h-6 w-6 items-center justify-center rounded bg-muted text-muted-foreground'>
+        <Activity className='h-4 w-4' />
+      </div>
+    )
+  }
+  const { file, height } = entry
   return (
     <img
       src={`/images/${file}.png`}

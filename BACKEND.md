@@ -6,7 +6,7 @@
 - **metrics.ts** — 22 metrics (18 original + 4 body composition: `body_fat_pct`, `muscle_mass_kg`, `bone_mass_kg`, `waist_circumference_cm`)
 - **sources.ts** — 10 sources (9 original + `visualize_ai` body composition scanner)
 - **checks.ts** — Weekly check rules with thresholds for BP, glucose, recovery signals
-- **entities.ts** — Full entity model: Observation, ResolvedMetric, DataConfidence, MetricDeviation, RiskAssessment, InsightNote, WorklistItem, Notification, AuditEvent
+- **entities.ts** — Full entity model: Observation, ResolvedMetric, DataConfidence, MetricDeviation, RiskAssessment, InsightNote, WorklistItem, Notification (with priority/message), AuditEvent
 - **api.ts** — API contract with 20+ endpoints (read, action, ai, demo)
 
 ### Analysis Engine (`src/analysis/`)
@@ -26,45 +26,65 @@ Pure functions, no I/O, fully testable:
 ### Mock API Adapter (`src/api/adapter.ts`)
 In-memory state management serving all API endpoints:
 - Worklist statuses (new → routed → acknowledged → resolved, re_escalated)
-- Notifications (unread → acknowledged/dismissed)
+- Notifications (unread → acknowledged/dismissed, with priority and message)
 - Audit trail (who did what, when)
-- Demo controls (worsen patient, advance clock)
+- `getEhrContext()` — chart + insight + connections for EHR view
+- `actOnNotificationByPatient()` — find notification by patient ID
 
-### External API Mocks (`src/integrations/`)
-- **visualize.ts** — Visualize AI body composition mock. Generates scan results for 5 patients, converts to canonical observations, feeds into risk score.
-- **photon.ts** — Photon Health e-prescribing mock. Simulates GraphQL mutation for prescription creation.
+### External API Integrations (`src/integrations/`)
+- **visualize.ts** — Visualize AI body composition mock. Generates scan results for 5 patients (P001, P015, P032, P047, P063), converts to canonical observations, feeds into risk score.
+- **photon.ts** — Photon Health e-prescribing integration. Attempts real GraphQL API call at `https://api.neutron.health/graphql` with bearer token from `VITE_PHOTON_AUTH_TOKEN`. Falls back to mock mode on auth failure (POC exception: includes drug names and doses). Pre-fills treatment based on patient conditions:
+  - `hypertension` → "Lisinopril 10mg daily (POC demo)"
+  - `t2_diabetes` → "Metformin 500mg twice daily (POC demo)"
+  - `heart_failure` → "Carvedilol 6.25mg daily (POC demo)"
+  - `copd` → "Albuterol inhaler 2 puffs BID PRN (POC demo)"
 
 ### Mock Data (`src/mock/`)
 - 100 synthetic patients, 91 days, 8 archetypes, 5 planted stories
 - Resolution pipeline (precedence + conflict detection)
 - Weekly checks + segments
-- EHR charts (medications, labs, encounters)
+- EHR charts (medications, labs, encounters, clinic vitals)
 - Visualize AI data integrated for 5 patients
 
-## What We Plan On Doing
+## What We Built (UI + Wiring)
 
-### Frontend Routes (building now)
-| Route | Purpose |
-|---|---|
-| `/population` | PHM view — cohort trends, segments, tier counts |
-| `/population/:segmentId` | CM view — patients in a segment, ranked by risk |
-| `/patients/:patientId` | Patient detail — timeline, insight note, confidence, "Export to EHR" |
-| `/worklist` | Ranked worklist with status lifecycle |
-| `/ehr` | EHR mockup — notification inbox, patient context card, clinician actions |
-| `/ehr/prescriptions/:patientId` | Prescription flow with Photon mock |
+### Role Toggle (`src/components/role-toggle.tsx`, `src/context/role-provider.tsx`)
+- Floating toggle in header for PHM / CM / Physician views
+- PHM → Dashboard, CM → All Patients, Physician → EHR Inbox
+- Sidebar hidden for Physician role
 
-### Demo Flow
-1. PHM sees "15 patients trending toward elevated BP" → clicks segment
-2. CM sees ranked patient list → clicks a person
-3. Patient detail modal opens with multi-device timeline, insight note, confidence
-4. CM clicks "Export to EHR" → confirmation, status changes to "Routed"
-5. EHR mockup shows notification with insight note + patient context card
-6. Clinician clicks "Proceed to prescription" → Photon mock → confirmation
-7. Demo control: "Worsen patient" → re-escalation → patient returns to top of queue
+### Dashboard (`src/features/dashboard/`)
+- **Segment cards** enriched: icons, trend arrows (up/down/flat), patient counts, metric labels, priority badges
+- Color-coded trend indicators (red = worsening, green = improving)
+
+### Patient Dialog (`src/features/patients/patient-dialog.tsx`)
+- Insight note card with editable CM suggestion and prescription suggestions
+- Risk score, confidence level, trend indicator
+- Multi-device timeline with tabs (including Visualize AI body composition)
+- Violations list (top 3 clickable + expandable)
+- "Send to doctor" button wired to `routePatient()` → navigates directly to `/ehr/prescriptions/[patientId]`
+
+### Violations List (`src/features/patients/violations-list.tsx`)
+- Top 3 violations clickable (rows are interactive)
+- Remaining violations shown on expand
+- Z-score, trend arrows, priority badges (high/medium/low)
+
+### EHR Routes (`src/routes/_app/ehr/`)
+- `/ehr/` — Notification inbox with full patient context card (conditions, meds, labs, clinic vitals)
+- `/ehr/prescriptions/$patientId` — Prescription flow with:
+  - OmniOS insight note (what changed, suggestion, confidence, sources)
+  - Pre-filled treatment based on patient conditions
+  - Real Photon API call (with mock fallback)
+  - Connected devices panel
+  - Confirmation with Rx ID
+
+### Segments (`src/features/dashboard/segments.ts`)
+- `SegmentCardData` enhanced with `prevCount`, `trend`, `metrics`, `primaryMetric`
+- Dashboard shows trend direction and previous week comparison
 
 ## Architecture Principles
 - **Insight, never decision** — OmniOS flags, clinicians decide
 - **Honest risk** — status changes never alter risk scores
 - **Data confidence** — low confidence dampens alerting, shown in UI
-- **Synthetic data** — all patients are fake, clearly labeled
-- **No real integrations** — all external APIs are mocked, labeled as demo
+- **No synthetic data badges** — per owner decision, data is unlabeled
+- **Photon POC exception** — drug names/doses included for demo, not for production

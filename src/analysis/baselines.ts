@@ -1,5 +1,4 @@
-import type { Metric, ResolvedMetric } from '../contracts'
-import { METRICS } from '../contracts'
+import { METRICS, type Metric, type ResolvedMetric } from '../contracts'
 import { median } from './stats'
 
 const BASELINE_WINDOW_DAYS = 30

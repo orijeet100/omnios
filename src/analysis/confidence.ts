@@ -4,7 +4,7 @@ import type {
   ResolvedMetric,
   SourceConnection,
 } from '../contracts'
-import { mean } from './stats'
+import { clamp, mean } from './stats'
 
 const CONFIDENCE_WINDOW_DAYS = 7
 

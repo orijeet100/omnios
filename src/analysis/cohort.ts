@@ -1,5 +1,4 @@
 import type { CohortTrend, Metric, RiskAssessment, Segment } from '../contracts'
-import { METRICS } from '../contracts'
 
 export function buildCohortTrends(
   segments: Segment[],
