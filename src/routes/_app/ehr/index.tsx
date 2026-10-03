@@ -1,6 +1,12 @@
+import { useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getApiAdapter } from '@/api'
-import { useEffect } from 'react'
+import { AlertTriangle, CheckCircle, Clock, User, Pill } from 'lucide-react'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -9,12 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertTriangle, CheckCircle, Clock, User, Pill } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_app/ehr/')({
   component: () => <RouteComponent />,
@@ -53,11 +53,13 @@ function RouteComponent() {
   }, [])
 
   return (
-    <div className='p-6 space-y-6'>
+    <div className='space-y-6 p-6'>
       <div className='flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-bold'>EHR Inbox</h1>
-          <p className='text-sm text-muted-foreground'>Notifications from OmniOS platform</p>
+          <p className='text-sm text-muted-foreground'>
+            Notifications from OmniOS platform
+          </p>
         </div>
         <Badge variant='outline' className='gap-1'>
           <AlertTriangle className='h-3 w-3' />
@@ -83,7 +85,10 @@ function RouteComponent() {
             <TableBody>
               {notifications.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className='py-12 text-center text-slate-500'>
+                  <TableCell
+                    colSpan={5}
+                    className='py-12 text-center text-slate-500'
+                  >
                     No notifications
                   </TableCell>
                 </TableRow>
@@ -99,7 +104,9 @@ function RouteComponent() {
                             <User className='h-5 w-5 text-slate-600' />
                           </div>
                           <div>
-                            <div className='font-semibold'>{chart?.name || n.patient_id}</div>
+                            <div className='font-semibold'>
+                              {chart?.name || n.patient_id}
+                            </div>
                             <div className='text-sm text-slate-500'>
                               {chart?.age}y · {chart?.sex} · MRN: {n.patient_id}
                             </div>
@@ -109,7 +116,12 @@ function RouteComponent() {
                       <TableCell>
                         <div className='flex items-center gap-2'>
                           {getPriorityIcon(n.priority ?? 'medium')}
-                          <Badge className={cn('text-xs', getPriorityColor(n.priority ?? 'low'))}>
+                          <Badge
+                            className={cn(
+                              'text-xs',
+                              getPriorityColor(n.priority ?? 'low')
+                            )}
+                          >
                             {n.priority ?? 'medium'}
                           </Badge>
                         </div>
@@ -117,10 +129,12 @@ function RouteComponent() {
                       <TableCell>
                         <div className='max-w-xs'>
                           <div className='line-clamp-2 text-sm'>
-                            {n.message || ehrContext.insight?.summary || 'Patient trending outside normal parameters'}
+                            {n.message ||
+                              ehrContext.insight?.what_changed ||
+                              'Patient trending outside normal parameters'}
                           </div>
                           {ehrContext.insight?.suggestion && (
-                            <div className='mt-1 text-xs italic text-slate-500'>
+                            <div className='mt-1 text-xs text-slate-500 italic'>
                               {ehrContext.insight.suggestion}
                             </div>
                           )}
@@ -128,7 +142,9 @@ function RouteComponent() {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={n.status === 'unread' ? 'default' : 'outline'}
+                          variant={
+                            n.status === 'unread' ? 'default' : 'outline'
+                          }
                           className='text-xs'
                         >
                           {n.status}
@@ -140,7 +156,11 @@ function RouteComponent() {
                             variant='ghost'
                             size='sm'
                             onClick={() => {
-                              adapter.actOnNotification(n.id, 'acknowledge', 'physician-001')
+                              adapter.actOnNotification(
+                                n.id,
+                                'acknowledge',
+                                'physician-001'
+                              )
                               toast.success('Notification acknowledged')
                             }}
                           >
@@ -148,7 +168,11 @@ function RouteComponent() {
                           </Button>
                           <Button
                             size='sm'
-                            onClick={() => navigate({ to: `/ehr/prescriptions/${n.patient_id}` })}
+                            onClick={() =>
+                              navigate({
+                                to: `/ehr/prescriptions/${n.patient_id}`,
+                              })
+                            }
                           >
                             <Pill className='h-4 w-4' />
                             Prescribe

@@ -1,10 +1,17 @@
 import type {
+  BodyScan,
   Observation,
   PatientChart,
   ResolvedMetric,
   SourceConnection,
   WeeklyFlag,
 } from '../contracts'
+import {
+  generateVisualizeWebhook,
+  visualizeToObservations,
+  getVisualizePatientIds,
+} from '../integrations/visualize'
+import { bodyScanFor } from './body-scans'
 import { buildChart } from './chart'
 import { buildCohort } from './cohort'
 import { DATA_END, DATA_START, LAST_DAY, addDays, dateOfDay } from './dates'
@@ -12,11 +19,6 @@ import { generateObservations } from './generate'
 import { resolve } from './resolve'
 import type { Archetype, PatientProfile, Story } from './types'
 import { computeWeeklyFlags } from './weekly'
-import {
-  generateVisualizeWebhook,
-  visualizeToObservations,
-  getVisualizePatientIds,
-} from '../integrations/visualize'
 
 export const DEFAULT_SEED = 20260927
 
@@ -42,6 +44,7 @@ export type Dataset = {
   resolved: ResolvedMetric[]
   weeklyFlags: WeeklyFlag[]
   connections: SourceConnection[]
+  bodyScans: BodyScan[]
   groundTruth: GroundTruth[]
 }
 
@@ -116,6 +119,7 @@ export function buildDataset(seed = DEFAULT_SEED): Dataset {
       ...buildConnections(profiles, allObservations),
       ...visualizeConnections,
     ],
+    bodyScans: profiles.map((p) => bodyScanFor(p, seed)),
     groundTruth: profiles.map((p) => ({
       patient_id: p.id,
       archetype: p.archetype,

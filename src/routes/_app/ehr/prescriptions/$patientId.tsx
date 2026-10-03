@@ -1,7 +1,14 @@
+import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getApiAdapter } from '@/api'
-import { createPrescription, getTreatmentForConditions, getTreatmentInstructions } from '@/integrations/photon'
-import { useState } from 'react'
+import {
+  createPrescription,
+  getTreatmentForConditions,
+  getTreatmentInstructions,
+} from '@/integrations/photon'
+import { Bell, Pill, Activity, User } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -9,12 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Bell, Pill, Activity, User } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 
 export const Route = createFileRoute('/_app/ehr/prescriptions/$patientId')({
   component: () => <RouteComponent />,
@@ -49,13 +53,17 @@ function RouteComponent() {
           instructions,
           diagnoses: conditions,
         },
-        chart?.name ?? 'Unknown Patient',
+        chart?.name ?? 'Unknown Patient'
       )
 
       if (result.fromApi) {
-        alert(`Prescription sent to Photon\nRx ID: ${result.prescription.id}\nState: ${result.prescription.state}`)
+        alert(
+          `Prescription sent to Photon\nRx ID: ${result.prescription.id}\nState: ${result.prescription.state}`
+        )
       } else {
-        alert(`Prescription created (mock mode)\nRx ID: ${result.prescription.id}`)
+        alert(
+          `Prescription created (mock mode)\nRx ID: ${result.prescription.id}`
+        )
       }
       navigate({ to: '/ehr' })
     } catch {
@@ -70,7 +78,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className='p-6 space-y-6'>
+    <div className='space-y-6 p-6'>
       <div className='flex items-center justify-between'>
         <h1 className='text-2xl font-bold'>New Prescription</h1>
         <Badge variant='outline' className='gap-1'>
@@ -80,7 +88,7 @@ function RouteComponent() {
       </div>
 
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-        <div className='lg:col-span-2 space-y-6'>
+        <div className='space-y-6 lg:col-span-2'>
           {insight && (
             <Card>
               <CardHeader>
@@ -88,21 +96,35 @@ function RouteComponent() {
                   <Bell className='h-4 w-4 text-blue-600' />
                   <CardTitle>OmniOS Insight</CardTitle>
                 </div>
-                <CardDescription>Anomaly detected from integrated data sources</CardDescription>
+                <CardDescription>
+                  Anomaly detected from integrated data sources
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className='space-y-4'>
                   <div>
-                    <p className='text-sm font-medium text-muted-foreground'>What changed</p>
-                    <p className='text-sm text-slate-700'>{insight.what_changed}</p>
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      What changed
+                    </p>
+                    <p className='text-sm text-slate-700'>
+                      {insight.what_changed}
+                    </p>
                   </div>
                   <div>
-                    <p className='text-sm font-medium text-muted-foreground'>Versus baseline</p>
-                    <p className='text-sm text-slate-600'>{insight.versus_baseline}</p>
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      Versus baseline
+                    </p>
+                    <p className='text-sm text-slate-600'>
+                      {insight.versus_baseline}
+                    </p>
                   </div>
                   <div>
-                    <p className='text-sm font-medium text-muted-foreground'>Suggestion</p>
-                    <p className='text-sm font-medium text-blue-600'>{insight.suggestion}</p>
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      Suggestion
+                    </p>
+                    <p className='text-sm font-medium text-blue-600'>
+                      {insight.suggestion}
+                    </p>
                   </div>
                   <div className='flex items-center gap-4 text-xs text-slate-500'>
                     <span>Confidence: {insight.confidence}</span>
@@ -117,7 +139,9 @@ function RouteComponent() {
           <Card>
             <CardHeader>
               <CardTitle>Treatment</CardTitle>
-              <CardDescription>Pre-filled based on patient conditions</CardDescription>
+              <CardDescription>
+                Pre-filled based on patient conditions
+              </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div>
@@ -132,11 +156,25 @@ function RouteComponent() {
               <div className='grid grid-cols-2 gap-4'>
                 <div>
                   <Label htmlFor='quantity'>Quantity</Label>
-                  <Input id='quantity' type='number' defaultValue={30} min={1} max={999} className='mt-1' />
+                  <Input
+                    id='quantity'
+                    type='number'
+                    defaultValue={30}
+                    min={1}
+                    max={999}
+                    className='mt-1'
+                  />
                 </div>
                 <div>
                   <Label htmlFor='days-supply'>Days Supply</Label>
-                  <Input id='days-supply' type='number' defaultValue={30} min={1} max={365} className='mt-1' />
+                  <Input
+                    id='days-supply'
+                    type='number'
+                    defaultValue={30}
+                    min={1}
+                    max={365}
+                    className='mt-1'
+                  />
                 </div>
               </div>
               <div>
@@ -168,7 +206,9 @@ function RouteComponent() {
             <CardContent>
               <div className='space-y-3'>
                 <div>
-                  <p className='text-sm font-medium text-muted-foreground'>Conditions</p>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    Conditions
+                  </p>
                   <div className='mt-1 flex flex-wrap gap-1'>
                     {chart.conditions.map((c) => (
                       <Badge key={c} variant='secondary' className='text-xs'>
@@ -178,29 +218,47 @@ function RouteComponent() {
                   </div>
                 </div>
                 <div>
-                  <p className='text-sm font-medium text-muted-foreground'>Current Medications</p>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    Current Medications
+                  </p>
                   <div className='mt-1 space-y-1'>
                     {chart.medications.map((m) => (
-                      <p key={m.label} className='text-sm'>{m.label} (since {new Date(m.started).toLocaleDateString()})</p>
+                      <p key={m.label} className='text-sm'>
+                        {m.label} (since{' '}
+                        {new Date(m.started).toLocaleDateString()})
+                      </p>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <p className='text-sm font-medium text-muted-foreground'>Recent Labs</p>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    Recent Labs
+                  </p>
                   <div className='mt-1 space-y-1'>
                     {chart.labs.slice(0, 4).map((l) => (
-                      <div key={l.name} className='flex justify-between text-sm'>
+                      <div
+                        key={l.name}
+                        className='flex justify-between text-sm'
+                      >
                         <span>{l.name}</span>
-                        <span className='font-medium tabular-nums'>{l.value} {l.unit}</span>
+                        <span className='font-medium tabular-nums'>
+                          {l.value} {l.unit}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
                 {chart.clinic_vitals && (
                   <div>
-                    <p className='text-sm font-medium text-muted-foreground'>Clinic Visit ({new Date(chart.clinic_vitals.date).toLocaleDateString()})</p>
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      Clinic Visit (
+                      {new Date(chart.clinic_vitals.date).toLocaleDateString()})
+                    </p>
                     <div className='mt-1 text-sm'>
-                      <p>BMP: {chart.clinic_vitals.bp_systolic}/{chart.clinic_vitals.bp_diastolic} mmHg</p>
+                      <p>
+                        BMP: {chart.clinic_vitals.bp_systolic}/
+                        {chart.clinic_vitals.bp_diastolic} mmHg
+                      </p>
                       <p>Weight: {chart.clinic_vitals.weight_kg} kg</p>
                     </div>
                   </div>
@@ -220,9 +278,17 @@ function RouteComponent() {
             <CardContent>
               <div className='space-y-2'>
                 {adapter.getPatientConnections(patientId).map((conn) => (
-                  <div key={conn.id} className='flex items-center justify-between text-sm'>
+                  <div
+                    key={conn.id}
+                    className='flex items-center justify-between text-sm'
+                  >
                     <span>{conn.source_id.replace(/_/g, ' ')}</span>
-                    <Badge variant={conn.status === 'connected' ? 'default' : 'secondary'} className='text-xs'>
+                    <Badge
+                      variant={
+                        conn.status === 'connected' ? 'default' : 'secondary'
+                      }
+                      className='text-xs'
+                    >
                       {conn.status}
                     </Badge>
                   </div>
@@ -240,7 +306,11 @@ function RouteComponent() {
             {isSubmitting ? 'Sending...' : 'Send Prescription'}
           </Button>
 
-          <Button variant='outline' className='w-full' onClick={() => navigate({ to: '/ehr' })}>
+          <Button
+            variant='outline'
+            className='w-full'
+            onClick={() => navigate({ to: '/ehr' })}
+          >
             Back to Inbox
           </Button>
         </div>

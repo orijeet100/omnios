@@ -26,12 +26,12 @@ npx vitest run src/mock --browser.enabled=false   # data generator tests (Node, 
 
 ## What you see
 
-| Screen                          | What it does                                                                                                                                |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Screen                          | What it does                                                                                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard** (`/`)             | "Patients showing abnormalities": one wide row per category (Blood pressure above normal, glucose time in range low, early warning signs) with a count. |
-| **Category** (`/segments/<id>`) | Square patient cards for that category: photo, name, age, sex and markers (red arrow past target, green dot on target).                     |
-| **All patients** (`/patients`)  | A card for every patient, with a search box (name, id, age, sex, condition or device).                                                      |
-| **Patient modal**               | One tab per device with charts (abnormal weeks in red), then Dismiss (closes) and Send to doctor (placeholder).                             |
+| **Category** (`/segments/<id>`) | Square patient cards for that category: photo, name, age, sex and markers (red arrow past target, green dot on target).                                 |
+| **All patients** (`/patients`)  | A card for every patient, with a search box (name, id, age, sex, condition or device).                                                                  |
+| **Patient modal**               | One tab per device with charts, plus a Visualize tab with a rotating 3D body scan; then Dismiss (closes) and Send to doctor (placeholder).              |
 
 ## How it works
 

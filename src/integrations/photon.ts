@@ -31,14 +31,15 @@ export interface CreatePrescriptionInput {
   diagnoses: string[]
 }
 
-const PHOTON_API_URL = import.meta.env.VITE_PHOTON_API_URL || 'https://api.neutron.health/graphql'
+const PHOTON_API_URL =
+  import.meta.env.VITE_PHOTON_API_URL || 'https://api.neutron.health/graphql'
 const PHOTON_AUTH_TOKEN = import.meta.env.VITE_PHOTON_AUTH_TOKEN || ''
 
 let prescriptionCounter = 0
 
 export async function createPrescription(
   input: CreatePrescriptionInput,
-  patientName: string,
+  patientName: string
 ): Promise<{ prescription: PhotonPrescription; fromApi: boolean }> {
   prescriptionCounter++
 
@@ -61,7 +62,7 @@ export async function createPrescription(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PHOTON_AUTH_TOKEN}`,
+          Authorization: `Bearer ${PHOTON_AUTH_TOKEN}`,
         },
         body: JSON.stringify({
           query: mutation,
@@ -86,7 +87,9 @@ export async function createPrescription(
       const result = await response.json()
 
       if (result.errors) {
-        throw new Error(result.errors.map((e: { message: string }) => e.message).join(', '))
+        throw new Error(
+          result.errors.map((e: { message: string }) => e.message).join(', ')
+        )
       }
 
       const rx = result.data.createPrescription
@@ -155,16 +158,24 @@ export function getTreatmentForConditions(conditions: string[]): string {
 export function getTreatmentInstructions(conditions: string[]): string {
   const treatments = []
   if (conditions.includes('hypertension')) {
-    treatments.push('Monitor BP daily. Lisinopril 10mg daily for hypertension management.')
+    treatments.push(
+      'Monitor BP daily. Lisinopril 10mg daily for hypertension management.'
+    )
   }
   if (conditions.includes('t2_diabetes')) {
-    treatments.push('Metformin 500mg twice daily with meals. Monitor fasting glucose.')
+    treatments.push(
+      'Metformin 500mg twice daily with meals. Monitor fasting glucose.'
+    )
   }
   if (conditions.includes('heart_failure')) {
     treatments.push('Carvedilol 6.25mg daily. Monitor weight and symptoms.')
   }
   if (conditions.includes('copd')) {
-    treatments.push('Albuterol inhaler 2 puffs BID PRN for wheezing. Avoid triggers.')
+    treatments.push(
+      'Albuterol inhaler 2 puffs BID PRN for wheezing. Avoid triggers.'
+    )
   }
-  return treatments.length > 0 ? treatments.join(' ') : 'Follow-up recommended based on wearable trends.'
+  return treatments.length > 0
+    ? treatments.join(' ')
+    : 'Follow-up recommended based on wearable trends.'
 }

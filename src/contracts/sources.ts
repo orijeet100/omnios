@@ -15,7 +15,12 @@ export const sourceIdSchema = z.enum([
 ])
 export type SourceId = z.infer<typeof sourceIdSchema>
 
-export const sourceCategorySchema = z.enum(['wearable', 'cgm', 'bp_cuff', 'body_composition'])
+export const sourceCategorySchema = z.enum([
+  'wearable',
+  'cgm',
+  'bp_cuff',
+  'body_composition',
+])
 
 /** Catalog entry: a kind of device/vendor the platform can ingest. */
 export const dataSourceSchema = z.object({
