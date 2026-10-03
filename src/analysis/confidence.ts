@@ -13,25 +13,27 @@ export function computeConfidence(
   observations: Observation[],
   connections: SourceConnection[],
   patientId: string,
-  asOf: string,
+  asOf: string
 ): DataConfidence {
   const patientResolved = resolved.filter(
-    (r) => r.patient_id === patientId && r.date <= asOf,
+    (r) => r.patient_id === patientId && r.date <= asOf
   )
   const patientObservations = observations.filter(
-    (o) => o.patient_id === patientId && o.date <= asOf,
+    (o) => o.patient_id === patientId && o.date <= asOf
   )
-  const patientConnections = connections.filter((c) => c.patient_id === patientId)
+  const patientConnections = connections.filter(
+    (c) => c.patient_id === patientId
+  )
 
   const cutoff = new Date(asOf)
   cutoff.setDate(cutoff.getDate() - CONFIDENCE_WINDOW_DAYS)
   const cutoffStr = cutoff.toISOString().slice(0, 10)
 
   const recentResolved = patientResolved.filter(
-    (r) => r.date > cutoffStr && r.date <= asOf,
+    (r) => r.date > cutoffStr && r.date <= asOf
   )
   const recentObservations = patientObservations.filter(
-    (o) => o.date > cutoffStr && o.date <= asOf,
+    (o) => o.date > cutoffStr && o.date <= asOf
   )
 
   const wearTimePoints = recentResolved.filter((r) => r.metric === 'wear_time')
@@ -45,12 +47,12 @@ export function computeConfidence(
   const missingDays = expectedDays - allDates.size
 
   const implausibleCount = recentObservations.filter(
-    (o) => o.quality_flag === 'implausible',
+    (o) => o.quality_flag === 'implausible'
   ).length
 
   const conflictCount = recentResolved.filter((r) => r.conflict).length
   const multiSourceCount = recentResolved.filter(
-    (r) => r.candidates.length > 1,
+    (r) => r.candidates.length > 1
   ).length
 
   let sourceAgreement: DataConfidence['factors']['source_agreement']
@@ -63,7 +65,7 @@ export function computeConfidence(
   }
 
   const activeConnections = patientConnections.filter(
-    (c) => c.status === 'connected' || c.status === 'stale',
+    (c) => c.status === 'connected' || c.status === 'stale'
   ).length
 
   let score = 1.0
@@ -84,7 +86,9 @@ export function computeConfidence(
   if (wearTimePct < 50) reasons.push(`Wear time ${Math.round(wearTimePct)}%`)
   if (missingDays > 2) reasons.push(`${missingDays} missing days`)
   if (implausibleCount > 0)
-    reasons.push(`${implausibleCount} implausible reading${implausibleCount > 1 ? 's' : ''}`)
+    reasons.push(
+      `${implausibleCount} implausible reading${implausibleCount > 1 ? 's' : ''}`
+    )
   if (sourceAgreement === 'conflict') reasons.push('Source conflict detected')
   if (activeConnections === 0) reasons.push('No active connections')
 
@@ -111,11 +115,14 @@ export function computeConfidenceForAll(
   observations: Observation[],
   connections: SourceConnection[],
   patientIds: string[],
-  asOf: string,
+  asOf: string
 ): Map<string, DataConfidence> {
   const result = new Map<string, DataConfidence>()
   for (const id of patientIds) {
-    result.set(id, computeConfidence(resolved, observations, connections, id, asOf))
+    result.set(
+      id,
+      computeConfidence(resolved, observations, connections, id, asOf)
+    )
   }
   return result
 }

@@ -1,10 +1,10 @@
 import { Outlet } from '@tanstack/react-router'
 import { HeartPulse } from 'lucide-react'
-import { RoleToggle } from '@/components/role-toggle'
-import { ThemeSwitch } from '@/components/theme-switch'
-import { Separator } from '@/components/ui/separator'
-import { SkipToMain } from '@/components/skip-to-main'
 import { RoleProvider } from '@/context/role-provider'
+import { Separator } from '@/components/ui/separator'
+import { RoleToggle } from '@/components/role-toggle'
+import { SkipToMain } from '@/components/skip-to-main'
+import { ThemeSwitch } from '@/components/theme-switch'
 
 export function AppLayout() {
   return (

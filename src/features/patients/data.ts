@@ -3,6 +3,7 @@ import {
   CONDITION_LABELS,
   METRICS,
   SOURCES,
+  type BodyScan,
   type ConditionCode,
   type Metric,
   type SegmentId,
@@ -383,3 +384,13 @@ export function matchesQuery(patient: PatientListItem, query: string): boolean {
 
 export const formatValue = (value: number | null, unit: string) =>
   value == null ? '–' : `${value}${unit === '%' ? '' : ' '}${unit}`
+
+let cachedBodyScans: Map<string, BodyScan> | null = null
+
+/** The patient's Visualize body scan (every patient has one in the mock). */
+export function getBodyScan(patientId: string): BodyScan | undefined {
+  cachedBodyScans ??= new Map(
+    getDataset().bodyScans.map((scan) => [scan.patient_id, scan])
+  )
+  return cachedBodyScans.get(patientId)
+}

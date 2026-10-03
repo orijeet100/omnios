@@ -49,11 +49,14 @@ function latestWeek() {
 
 function getSegmentMetrics(segmentId: SegmentId): string[] {
   const { weeklyFlags } = getDataset()
-  const segmentPatients = latestWeek().segments.find((s) => s.id === segmentId)?.patient_ids ?? []
+  const segmentPatients =
+    latestWeek().segments.find((s) => s.id === segmentId)?.patient_ids ?? []
 
   const metricSet = new Set<string>()
   for (const pid of segmentPatients) {
-    for (const flag of weeklyFlags.filter((f) => f.patient_id === pid && f.week_start === LATEST_WEEK)) {
+    for (const flag of weeklyFlags.filter(
+      (f) => f.patient_id === pid && f.week_start === LATEST_WEEK
+    )) {
       if (flag.status === 'off') {
         metricSet.add(flag.metric)
       }
@@ -62,7 +65,10 @@ function getSegmentMetrics(segmentId: SegmentId): string[] {
   return [...metricSet]
 }
 
-function computeTrend(current: number, previous: number): 'up' | 'down' | 'flat' {
+function computeTrend(
+  current: number,
+  previous: number
+): 'up' | 'down' | 'flat' {
   if (previous === 0 && current === 0) return 'flat'
   if (previous === 0) return 'up'
   const pctChange = ((current - previous) / previous) * 100
@@ -73,7 +79,11 @@ function computeTrend(current: number, previous: number): 'up' | 'down' | 'flat'
 
 export function getDashboard() {
   const week = latestWeek()
-  const prevWeekData = computeSegments(getDataset().profiles, getDataset().weeklyFlags, PREV_WEEK)
+  const prevWeekData = computeSegments(
+    getDataset().profiles,
+    getDataset().weeklyFlags,
+    PREV_WEEK
+  )
 
   const cards: SegmentCardData[] = week.segments
     .filter((segment) => SHOWN_SEGMENTS.includes(segment.id))

@@ -14,10 +14,10 @@ export function computeDeviations(
   resolved: ResolvedMetric[],
   patientId: string,
   baselines: Map<Metric, number>,
-  asOf: string,
+  asOf: string
 ): MetricDeviation[] {
   const patientMetrics = resolved.filter(
-    (r) => r.patient_id === patientId && r.date <= asOf,
+    (r) => r.patient_id === patientId && r.date <= asOf
   )
 
   const byMetric = new Map<Metric, ResolvedMetric[]>()
@@ -41,15 +41,14 @@ export function computeDeviations(
     const [lo, hi] = getPlausibleRange(metric)
     const recentWindow = sorted.slice(-SLOPE_WINDOW_DAYS)
     const daysOutOfRange = recentWindow.filter(
-      (p) => p.value < lo || p.value > hi,
+      (p) => p.value < lo || p.value > hi
     ).length
 
     const baselineWindow = sorted.slice(-30)
     const baselineValues = baselineWindow.map((p) => p.value)
     const baselineStd = stdDev(baselineValues)
 
-    const zScore =
-      baselineStd > 0 ? (current - baseline) / baselineStd : 0
+    const zScore = baselineStd > 0 ? (current - baseline) / baselineStd : 0
 
     const slopeValues = recentWindow.map((p) => p.value)
     const slope = linearSlope(slopeValues)
@@ -77,13 +76,13 @@ export function computeDeviations(
 export function computeDeviationsForAll(
   resolved: ResolvedMetric[],
   baselines: Map<string, Map<Metric, number>>,
-  asOf: string,
+  asOf: string
 ): Map<string, MetricDeviation[]> {
   const result = new Map<string, MetricDeviation[]>()
   for (const [patientId, patientBaselines] of baselines) {
     result.set(
       patientId,
-      computeDeviations(resolved, patientId, patientBaselines, asOf),
+      computeDeviations(resolved, patientId, patientBaselines, asOf)
     )
   }
   return result

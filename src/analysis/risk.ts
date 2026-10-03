@@ -8,7 +8,10 @@ import type {
 } from '../contracts'
 import { clamp, roundTenth } from './stats'
 
-const CONDITION_WEIGHTS: Record<ConditionCode, Partial<Record<Metric, number>>> = {
+const CONDITION_WEIGHTS: Record<
+  ConditionCode,
+  Partial<Record<Metric, number>>
+> = {
   hypertension: {
     bp_systolic: 3,
     bp_diastolic: 2,
@@ -81,7 +84,7 @@ export function computeRisk(
   deviations: MetricDeviation[],
   conditions: ConditionCode[],
   confidence: DataConfidence,
-  asOf: string,
+  asOf: string
 ): RiskAssessment {
   const weights = conditions.map((c) => CONDITION_WEIGHTS[c] ?? {})
   const mergedWeights = mergeWeights(weights)
@@ -130,7 +133,7 @@ export function computeRisk(
 }
 
 function mergeWeights(
-  weightMaps: Partial<Record<Metric, number>>[],
+  weightMaps: Partial<Record<Metric, number>>[]
 ): Partial<Record<Metric, number>> {
   const merged: Partial<Record<Metric, number>> = {}
   for (const wm of weightMaps) {
@@ -167,7 +170,7 @@ export function computeRiskForAll(
   deviations: Map<string, MetricDeviation[]>,
   conditions: Map<string, ConditionCode[]>,
   confidences: Map<string, DataConfidence>,
-  asOf: string,
+  asOf: string
 ): Map<string, RiskAssessment> {
   const result = new Map<string, RiskAssessment>()
   for (const [patientId, devs] of deviations) {
@@ -183,7 +186,10 @@ export function computeRiskForAll(
       },
       summary: 'No data',
     }
-    result.set(patientId, computeRisk(devs, patientConditions, confidence, asOf))
+    result.set(
+      patientId,
+      computeRisk(devs, patientConditions, confidence, asOf)
+    )
   }
   return result
 }

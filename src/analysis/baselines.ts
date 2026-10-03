@@ -6,10 +6,10 @@ const BASELINE_WINDOW_DAYS = 30
 export function computeBaselines(
   resolved: ResolvedMetric[],
   patientId: string,
-  asOf: string,
+  asOf: string
 ): Map<Metric, number> {
   const patientMetrics = resolved.filter(
-    (r) => r.patient_id === patientId && r.date <= asOf,
+    (r) => r.patient_id === patientId && r.date <= asOf
   )
 
   const byMetric = new Map<Metric, ResolvedMetric[]>()
@@ -40,7 +40,7 @@ export function computeBaselines(
 export function computeBaselinesForAll(
   resolved: ResolvedMetric[],
   patientIds: string[],
-  asOf: string,
+  asOf: string
 ): Map<string, Map<Metric, number>> {
   const result = new Map<string, Map<Metric, number>>()
   for (const id of patientIds) {

@@ -115,6 +115,7 @@ export const endpoints = {
       confidence: dataConfidenceSchema,
       deviations: z.array(metricDeviationSchema),
       worklist: worklistItemSchema,
+      insight: insightNoteSchema.nullable(),
     }),
   },
   getEhrChart: {

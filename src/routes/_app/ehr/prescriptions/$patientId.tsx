@@ -1,13 +1,15 @@
+import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getApiAdapter } from '@/api'
-import { RunlogChat } from '@/features/ehr/runlog-chat'
 import {
   createPrescription,
   getTreatmentPlansForConditions,
   getPhotonSandboxUrl,
   type PhotonPrescription,
 } from '@/integrations/photon'
-import { useState } from 'react'
+import { Bell, Pill, Activity, User } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -15,12 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Bell, Pill, Activity, User } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { RunlogChat } from '@/features/ehr/runlog-chat'
 
 export const Route = createFileRoute('/_app/ehr/prescriptions/$patientId')({
   component: () => <RouteComponent />,
@@ -59,13 +59,17 @@ function RouteComponent() {
         {
           patient_id: patientId,
           treatment_name: selected.map((p) => p.treatment).join('; '),
-          dispense_quantity: selected.length ? Math.max(...selected.map((p) => p.dispense_quantity)) : 30,
+          dispense_quantity: selected.length
+            ? Math.max(...selected.map((p) => p.dispense_quantity))
+            : 30,
           dispense_unit: selected.length ? selected[0].dispense_unit : 'days',
-          days_supply: selected.length ? Math.max(...selected.map((p) => p.days_supply)) : 30,
+          days_supply: selected.length
+            ? Math.max(...selected.map((p) => p.days_supply))
+            : 30,
           instructions: selected.map((p) => p.instructions).join(' '),
           diagnoses: conditions,
         },
-        chart?.name ?? 'Unknown Patient',
+        chart?.name ?? 'Unknown Patient'
       )
       setSent(result)
     } catch {
@@ -80,7 +84,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className='p-6 space-y-6'>
+    <div className='space-y-6 p-6'>
       <div className='flex items-center justify-between'>
         <h1 className='text-2xl font-bold'>New Prescription</h1>
         <Badge variant='outline' className='gap-1'>
@@ -90,7 +94,7 @@ function RouteComponent() {
       </div>
 
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-        <div className='lg:col-span-2 space-y-6'>
+        <div className='space-y-6 lg:col-span-2'>
           {insight && (
             <Card>
               <CardHeader>
@@ -98,21 +102,35 @@ function RouteComponent() {
                   <Bell className='h-4 w-4 text-blue-600' />
                   <CardTitle>OmniOS Insight</CardTitle>
                 </div>
-                <CardDescription>Anomaly detected from integrated data sources</CardDescription>
+                <CardDescription>
+                  Anomaly detected from integrated data sources
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className='space-y-4'>
                   <div>
-                    <p className='text-sm font-medium text-muted-foreground'>What changed</p>
-                    <p className='text-sm text-slate-700'>{insight.what_changed}</p>
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      What changed
+                    </p>
+                    <p className='text-sm text-slate-700'>
+                      {insight.what_changed}
+                    </p>
                   </div>
                   <div>
-                    <p className='text-sm font-medium text-muted-foreground'>Versus baseline</p>
-                    <p className='text-sm text-slate-600'>{insight.versus_baseline}</p>
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      Versus baseline
+                    </p>
+                    <p className='text-sm text-slate-600'>
+                      {insight.versus_baseline}
+                    </p>
                   </div>
                   <div>
-                    <p className='text-sm font-medium text-muted-foreground'>Suggestion</p>
-                    <p className='text-sm font-medium text-blue-600'>{insight.suggestion}</p>
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      Suggestion
+                    </p>
+                    <p className='text-sm font-medium text-blue-600'>
+                      {insight.suggestion}
+                    </p>
                   </div>
                   <div className='flex items-center gap-4 text-xs text-slate-500'>
                     <span>Confidence: {insight.confidence}</span>
@@ -141,7 +159,9 @@ function RouteComponent() {
                 <div
                   key={plan.match}
                   className={`rounded-lg border p-4 transition-colors ${
-                    plan.enabled ? 'border-primary/40 bg-primary/5' : 'border-border bg-muted/20 opacity-70'
+                    plan.enabled
+                      ? 'border-primary/40 bg-primary/5'
+                      : 'border-border bg-muted/20 opacity-70'
                   }`}
                 >
                   <label className='flex cursor-pointer items-center gap-2'>
@@ -151,13 +171,15 @@ function RouteComponent() {
                       onChange={(e) =>
                         setPlans((prev) =>
                           prev.map((p) =>
-                            p.match === plan.match ? { ...p, enabled: e.target.checked } : p
+                            p.match === plan.match
+                              ? { ...p, enabled: e.target.checked }
+                              : p
                           )
                         )
                       }
                       className='size-4 accent-foreground'
                     />
-                    <span className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                    <span className='text-xs font-semibold tracking-wide text-muted-foreground uppercase'>
                       {plan.match.replace('_', ' ')}
                     </span>
                   </label>
@@ -168,7 +190,9 @@ function RouteComponent() {
                     onChange={(e) =>
                       setPlans((prev) =>
                         prev.map((p) =>
-                          p.match === plan.match ? { ...p, treatment: e.target.value } : p
+                          p.match === plan.match
+                            ? { ...p, treatment: e.target.value }
+                            : p
                         )
                       )
                     }
@@ -181,7 +205,9 @@ function RouteComponent() {
                     onChange={(e) =>
                       setPlans((prev) =>
                         prev.map((p) =>
-                          p.match === plan.match ? { ...p, instructions: e.target.value } : p
+                          p.match === plan.match
+                            ? { ...p, instructions: e.target.value }
+                            : p
                         )
                       )
                     }
@@ -202,7 +228,10 @@ function RouteComponent() {
                           setPlans((prev) =>
                             prev.map((p) =>
                               p.match === plan.match
-                                ? { ...p, dispense_quantity: Number(e.target.value) }
+                                ? {
+                                    ...p,
+                                    dispense_quantity: Number(e.target.value),
+                                  }
                                 : p
                             )
                           )
@@ -247,13 +276,13 @@ function RouteComponent() {
                   </div>
                 </div>
               ))}
-</CardContent>
-            </Card>
+            </CardContent>
+          </Card>
 
-            <RunlogChat patientId={patientId} patientName={chart.name} />
-          </div>
+          <RunlogChat patientId={patientId} patientName={chart.name} />
+        </div>
 
-          <div className='space-y-6'>
+        <div className='space-y-6'>
           <Card>
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
@@ -267,7 +296,9 @@ function RouteComponent() {
             <CardContent>
               <div className='space-y-3'>
                 <div>
-                  <p className='text-sm font-medium text-muted-foreground'>Conditions</p>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    Conditions
+                  </p>
                   <div className='mt-1 flex flex-wrap gap-1'>
                     {chart.conditions.map((c) => (
                       <Badge key={c} variant='secondary' className='text-xs'>
@@ -277,29 +308,47 @@ function RouteComponent() {
                   </div>
                 </div>
                 <div>
-                  <p className='text-sm font-medium text-muted-foreground'>Current Medications</p>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    Current Medications
+                  </p>
                   <div className='mt-1 space-y-1'>
                     {chart.medications.map((m) => (
-                      <p key={m.label} className='text-sm'>{m.label} (since {new Date(m.started).toLocaleDateString()})</p>
+                      <p key={m.label} className='text-sm'>
+                        {m.label} (since{' '}
+                        {new Date(m.started).toLocaleDateString()})
+                      </p>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <p className='text-sm font-medium text-muted-foreground'>Recent Labs</p>
+                  <p className='text-sm font-medium text-muted-foreground'>
+                    Recent Labs
+                  </p>
                   <div className='mt-1 space-y-1'>
                     {chart.labs.slice(0, 4).map((l) => (
-                      <div key={l.name} className='flex justify-between text-sm'>
+                      <div
+                        key={l.name}
+                        className='flex justify-between text-sm'
+                      >
                         <span>{l.name}</span>
-                        <span className='font-medium tabular-nums'>{l.value} {l.unit}</span>
+                        <span className='font-medium tabular-nums'>
+                          {l.value} {l.unit}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
                 {chart.clinic_vitals && (
                   <div>
-                    <p className='text-sm font-medium text-muted-foreground'>Clinic Visit ({new Date(chart.clinic_vitals.date).toLocaleDateString()})</p>
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      Clinic Visit (
+                      {new Date(chart.clinic_vitals.date).toLocaleDateString()})
+                    </p>
                     <div className='mt-1 text-sm'>
-                      <p>BMP: {chart.clinic_vitals.bp_systolic}/{chart.clinic_vitals.bp_diastolic} mmHg</p>
+                      <p>
+                        BMP: {chart.clinic_vitals.bp_systolic}/
+                        {chart.clinic_vitals.bp_diastolic} mmHg
+                      </p>
                       <p>Weight: {chart.clinic_vitals.weight_kg} kg</p>
                     </div>
                   </div>
@@ -319,9 +368,17 @@ function RouteComponent() {
             <CardContent>
               <div className='space-y-2'>
                 {adapter.getPatientConnections(patientId).map((conn) => (
-                  <div key={conn.id} className='flex items-center justify-between text-sm'>
+                  <div
+                    key={conn.id}
+                    className='flex items-center justify-between text-sm'
+                  >
                     <span>{conn.source_id.replace(/_/g, ' ')}</span>
-                    <Badge variant={conn.status === 'connected' ? 'default' : 'secondary'} className='text-xs'>
+                    <Badge
+                      variant={
+                        conn.status === 'connected' ? 'default' : 'secondary'
+                      }
+                      className='text-xs'
+                    >
                       {conn.status}
                     </Badge>
                   </div>
@@ -339,55 +396,59 @@ function RouteComponent() {
             {isSubmitting ? 'Sending...' : 'Send Prescription'}
           </Button>
 
-           <Button variant='outline' className='w-full' onClick={() => navigate({ to: '/ehr' })}>
-             Back to Inbox
-           </Button>
+          <Button
+            variant='outline'
+            className='w-full'
+            onClick={() => navigate({ to: '/ehr' })}
+          >
+            Back to Inbox
+          </Button>
 
-           {sent && (
-              <Card className='border-green-200 bg-green-50'>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <Pill className='h-4 w-4 text-green-600' />
-                    Photon Prescription Confirmed
-                  </CardTitle>
-                  <CardDescription>
-                    {sent.fromApi
-                      ? 'Sent via the Photon (Neutron Health) API'
-                      : 'Captured in mock mode — set VITE_PHOTON_AUTH_TOKEN to send via the Photon API'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <dl className='space-y-1 text-sm'>
-                    <div className='flex justify-between'>
-                      <dt className='text-muted-foreground'>Rx ID</dt>
-                      <dd className='font-mono'>{sent.prescription.id}</dd>
-                    </div>
-                    <div className='flex justify-between'>
-                      <dt className='text-muted-foreground'>State</dt>
-                      <dd>
-                        <Badge variant='secondary' className='text-xs'>
-                          {sent.prescription.state}
-                        </Badge>
-                      </dd>
-                    </div>
-                    <div className='flex justify-between'>
-                      <dt className='text-muted-foreground'>For</dt>
-                      <dd>{sent.prescription.patient_name}</dd>
-                    </div>
-                    <div className='flex justify-between'>
-                      <dt className='text-muted-foreground'>Diagnosis codes</dt>
-                      <dd>{sent.prescription.diagnoses.join(', ')}</dd>
-                    </div>
-                  </dl>
-                  <div className='mt-3 rounded border bg-background p-3'>
-                    <p className='text-sm font-medium'>Prescription</p>
-                    <p className='text-sm'>{sent.prescription.treatment_name}</p>
-                    <p className='mt-1 text-xs text-muted-foreground'>
-                      {sent.prescription.instructions}
-                    </p>
+          {sent && (
+            <Card className='border-green-200 bg-green-50'>
+              <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                  <Pill className='h-4 w-4 text-green-600' />
+                  Photon Prescription Confirmed
+                </CardTitle>
+                <CardDescription>
+                  {sent.fromApi
+                    ? 'Sent via the Photon (Neutron Health) API'
+                    : 'Captured in mock mode — set VITE_PHOTON_AUTH_TOKEN to send via the Photon API'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <dl className='space-y-1 text-sm'>
+                  <div className='flex justify-between'>
+                    <dt className='text-muted-foreground'>Rx ID</dt>
+                    <dd className='font-mono'>{sent.prescription.id}</dd>
                   </div>
-                  <pre className='mt-3 overflow-x-auto rounded bg-slate-900 p-3 text-[11px] leading-relaxed text-slate-100'>
-{`mutation CreatePrescription {
+                  <div className='flex justify-between'>
+                    <dt className='text-muted-foreground'>State</dt>
+                    <dd>
+                      <Badge variant='secondary' className='text-xs'>
+                        {sent.prescription.state}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div className='flex justify-between'>
+                    <dt className='text-muted-foreground'>For</dt>
+                    <dd>{sent.prescription.patient_name}</dd>
+                  </div>
+                  <div className='flex justify-between'>
+                    <dt className='text-muted-foreground'>Diagnosis codes</dt>
+                    <dd>{sent.prescription.diagnoses.join(', ')}</dd>
+                  </div>
+                </dl>
+                <div className='mt-3 rounded border bg-background p-3'>
+                  <p className='text-sm font-medium'>Prescription</p>
+                  <p className='text-sm'>{sent.prescription.treatment_name}</p>
+                  <p className='mt-1 text-xs text-muted-foreground'>
+                    {sent.prescription.instructions}
+                  </p>
+                </div>
+                <pre className='mt-3 overflow-x-auto rounded bg-slate-900 p-3 text-[11px] leading-relaxed text-slate-100'>
+                  {`mutation CreatePrescription {
   createPrescription(input: {
     patientId: "${sent.prescription.patient_id}",
     treatmentName: "${sent.prescription.treatment_name}",
@@ -401,12 +462,12 @@ function RouteComponent() {
 }
 # POST ${getPhotonSandboxUrl()}
 # Rx ID: ${sent.prescription.id} · state: ${sent.prescription.state}`}
-                  </pre>
-                </CardContent>
-              </Card>
-            )}
-         </div>
-       </div>
-     </div>
-   )
- }
+                </pre>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

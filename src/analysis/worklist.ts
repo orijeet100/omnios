@@ -12,6 +12,7 @@ export function buildWorklistItem(
   patientId: string,
   name: string,
   age: number,
+  sex: 'F' | 'M',
   conditions: ConditionCode[],
   risk: RiskAssessment,
   confidence: DataConfidence,
@@ -19,7 +20,7 @@ export function buildWorklistItem(
   existingStatus?: WorklistStatus,
   routedAt?: string,
   snoozeUntil?: string,
-  riskAtRouting?: number,
+  riskAtRouting?: number
 ): WorklistItem {
   const primaryDriver =
     risk.drivers.length > 0 ? (risk.drivers[0].metric as Metric) : null
@@ -28,6 +29,7 @@ export function buildWorklistItem(
     patient_id: patientId,
     name,
     age,
+    sex,
     conditions,
     risk_score: risk.score,
     risk_tier: risk.tier,
@@ -61,6 +63,7 @@ export function buildWorklist(
     patient_id: string
     name: string
     age: number
+    sex: 'F' | 'M'
     conditions: ConditionCode[]
   }[],
   risks: Map<string, RiskAssessment>,
@@ -69,7 +72,7 @@ export function buildWorklist(
   existingStatuses: Map<string, WorklistStatus>,
   existingRoutedAt: Map<string, string>,
   existingSnoozeUntil: Map<string, string>,
-  existingRiskAtRouting: Map<string, number>,
+  existingRiskAtRouting: Map<string, number>
 ): WorklistItem[] {
   const items: WorklistItem[] = []
 
@@ -98,6 +101,7 @@ export function buildWorklist(
         patient.patient_id,
         patient.name,
         patient.age,
+        patient.sex,
         patient.conditions,
         risk,
         confidence,
@@ -105,8 +109,8 @@ export function buildWorklist(
         existingStatuses.get(patient.patient_id),
         existingRoutedAt.get(patient.patient_id),
         existingSnoozeUntil.get(patient.patient_id),
-        existingRiskAtRouting.get(patient.patient_id),
-      ),
+        existingRiskAtRouting.get(patient.patient_id)
+      )
     )
   }
 

@@ -31,14 +31,15 @@ export interface CreatePrescriptionInput {
   diagnoses: string[]
 }
 
-const PHOTON_API_URL = import.meta.env.VITE_PHOTON_API_URL || 'https://api.neutron.health/graphql'
+const PHOTON_API_URL =
+  import.meta.env.VITE_PHOTON_API_URL || 'https://api.neutron.health/graphql'
 const PHOTON_AUTH_TOKEN = import.meta.env.VITE_PHOTON_AUTH_TOKEN || ''
 
 let prescriptionCounter = 0
 
 export async function createPrescription(
   input: CreatePrescriptionInput,
-  patientName: string,
+  patientName: string
 ): Promise<{ prescription: PhotonPrescription; fromApi: boolean }> {
   prescriptionCounter++
 
@@ -61,7 +62,7 @@ export async function createPrescription(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PHOTON_AUTH_TOKEN}`,
+          Authorization: `Bearer ${PHOTON_AUTH_TOKEN}`,
         },
         body: JSON.stringify({
           query: mutation,
@@ -86,7 +87,9 @@ export async function createPrescription(
       const result = await response.json()
 
       if (result.errors) {
-        throw new Error(result.errors.map((e: { message: string }) => e.message).join(', '))
+        throw new Error(
+          result.errors.map((e: { message: string }) => e.message).join(', ')
+        )
       }
 
       const rx = result.data.createPrescription
@@ -151,7 +154,7 @@ const TREATMENT_PLANS: Array<{
     match: 't2_diabetes',
     treatment: 'Metformin 500 mg twice daily with meals',
     instructions:
-      'Take with morning and evening meals. Pair with the patient\'s CGM time-in-range trend in the chart; clinician-titrate dose based on glucose control and renal function.',
+      "Take with morning and evening meals. Pair with the patient's CGM time-in-range trend in the chart; clinician-titrate dose based on glucose control and renal function.",
   },
   {
     match: 'heart_failure',
@@ -178,12 +181,15 @@ export function getTreatmentPlansForConditions(
 
 export function getTreatmentForConditions(conditions: string[]): string {
   const plan = TREATMENT_PLANS.find((p) => conditions.includes(p.match))
-  return plan ? plan.treatment : 'Consult the care plan for the next pharmacologic step'
+  return plan
+    ? plan.treatment
+    : 'Consult the care plan for the next pharmacologic step'
 }
 
 export function getTreatmentInstructions(conditions: string[]): string {
-  const instructions = TREATMENT_PLANS.filter((p) => conditions.includes(p.match))
-    .map((p) => `${p.treatment}. ${p.instructions}`)
+  const instructions = TREATMENT_PLANS.filter((p) =>
+    conditions.includes(p.match)
+  ).map((p) => `${p.treatment}. ${p.instructions}`)
   return instructions.length > 0
     ? instructions.join(' ')
     : 'Continue current management and schedule a follow-up based on the wearable trend.'

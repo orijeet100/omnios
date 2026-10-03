@@ -112,7 +112,9 @@ medical constraints in `context.md`.
     arrows. Body: one tab per device, shown as the brand's logo (Whoop, Omron, Dexcom, ...; black logos are inverted in dark mode), a red
     dot on any device with an out-of-range reading, opening on the first such
     device. Each tab charts that device's measurements, out-of-range ones
-    first. Footer, centered: Dismiss (closes the modal) and Send to doctor
+    first. The last tab is **Visualize** (the Visualize logo): a rotating 3D
+    point-cloud of the body scan next to its measurements, with markers for the
+    waist-hip and waist-height ratios. Footer, centered: Dismiss (closes the modal) and Send to doctor
     (placeholder, does nothing yet).
 25. **One chart style.** The normal line is `--primary`, abnormal stretches are
     `--destructive` and drawn on top, the decision line is a
@@ -133,7 +135,7 @@ medical constraints in `context.md`.
 | **Dashboard** | `/` | Title "Patients showing abnormalities", then one wide row per category: Blood pressure above normal, Glucose time in range low, Early warning signs. Each shows a count and links to its patients. |
 | **Category** | `/segments/<id>` | Square patient cards for the patients in that category; each card's arrows are the measurements that put them there. Clicking a card opens the patient modal. |
 | **All patients** | `/patients` | A search box (name, id, age, sex, condition, device; every word must match) and a square card for every patient with arrows for all their measurements. Clicking a card opens the patient modal. |
-| **Patient modal** | `?patient=<id>` on either page | See rule 24. Linkable, and the Back button closes it. |
+| **Patient modal** | `?patient=<id>` on either page | See rule 24: a tab per device, plus a Visualize tab with the 3D body scan. Linkable, and the Back button closes it. |
 
 "Not enough data" is a data-quality signal, not an abnormality, so it is not
 shown on the dashboard.

@@ -1,10 +1,19 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
 import { getApiAdapter } from '@/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  FileText,
+  Shield,
+  Bell,
+  Send,
+  CheckCircle,
+  Trash2,
+  Activity,
+  Clock,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { FileText, Shield, Bell, Send, CheckCircle, Trash2, Activity, Clock } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/audit/')({
   component: AuditPage,
@@ -36,7 +45,7 @@ function AuditPage() {
   }
 
   return (
-    <div className='p-6 space-y-6'>
+    <div className='space-y-6 p-6'>
       <div className='flex items-center gap-4'>
         <Shield className='h-6 w-6 text-muted-foreground' />
         <div>
@@ -62,19 +71,23 @@ function AuditPage() {
                   className='flex items-center justify-between rounded-lg border p-3'
                 >
                   <div className='flex items-start gap-3'>
-                    {ACTION_ICONS[event.action] ?? <Activity className='h-4 w-4' />}
+                    {ACTION_ICONS[event.action] ?? (
+                      <Activity className='h-4 w-4' />
+                    )}
                     <div>
                       <p className='text-sm font-medium'>
                         {event.action.replace(/_/g, ' ')}
                       </p>
-                      <p className='text-xs text-muted-foreground'>{event.detail}</p>
+                      <p className='text-xs text-muted-foreground'>
+                        {event.detail}
+                      </p>
                     </div>
                   </div>
                   <div className='text-right'>
                     <Badge variant='outline' className='text-xs capitalize'>
                       {event.actor_role}
                     </Badge>
-                    <p className='text-xs text-muted-foreground mt-1'>
+                    <p className='mt-1 text-xs text-muted-foreground'>
                       {new Date(event.timestamp).toLocaleString()}
                     </p>
                   </div>
