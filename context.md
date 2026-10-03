@@ -6,7 +6,7 @@
 
 ## 1. One-paragraph summary
 
-**OmniOS** is a unified wearable-data and insight layer for hospitals that manage Medicaid patients under value-based contracts. It connects to the consumer devices patients already own (Apple Watch, Fitbit, Garmin, Oura, Whoop) plus clinical-adjacent devices (CGMs, home BP cuffs), normalizes everything into one canonical layer, and surfaces which patients are drifting toward trouble and why. **Care managers and population health nurses** triage those patients in the OmniOS platform and route cases onward. **Clinicians** receive the result as a notification inside their existing EHR and make every clinical decision themselves. OmniOS never decides, prescribes, or orders.
+**OmniOS** is a unified wearable-data and insight layer for hospitals that manage Medicare patients under value-based contracts. It connects to the consumer devices patients already own (Apple Watch, Fitbit, Garmin, Oura, Whoop) plus clinical-adjacent devices (CGMs, home BP cuffs), normalizes everything into one canonical layer, and surfaces which patients are drifting toward trouble and why. **Care managers and population health nurses** triage those patients in the OmniOS platform and route cases onward. **Clinicians** receive the result as a notification inside their existing EHR and make every clinical decision themselves. OmniOS never decides, prescribes, or orders.
 
 **Hackathon goal:** a working, end-to-end demo by the end of today. Data sources are mocked. The unification and analysis must look and behave realistically, but clinical-grade validation is explicitly out of scope.
 
@@ -14,8 +14,8 @@
 
 ## 2. The problem we solve
 
-- Medicaid members sign up for wearables (Whoop, Apple Watch, etc.) through their own Medicaid accounts. **The hospital has no connection to those devices and cannot see the data.**
-- **Post-2028**, the cost of devices for attributed Medicaid members is charged against the medical assistance allocated to the hospital.
+- Medicare members sign up for wearables (Whoop, Apple Watch, etc.) through their own Medicare accounts. **The hospital has no connection to those devices and cannot see the data.**
+- **Post-2028**, the cost of devices for attributed Medicare members is charged against the medical assistance allocated to the hospital.
 - Pre-2028 the pool was somewhat higher. Post-2028 the government adds a small increase on top, but the device costs exceed that increase. **The hospital ends up in a net loss before any bonus**, paying for devices it cannot use to manage its patients.
 
 **Illustrative numbers (placeholders only, never present as real):** pre-2028 pool $5.0M, post-2028 pool $5.2M, with device costs charged against it that exceed the $0.2M increase.
@@ -292,7 +292,7 @@ If time runs short, cut in this order: closed loop, polish on the EHR mock, opti
 ## 15. Rules for Claude Code
 
 - **Do not build** a leadership/finance view, a clinician-facing OmniOS app, or any patient-facing UI.
-- **Do not claim** a real EHR, device-API, or Medicaid-program integration anywhere in the UI or docs.
+- **Do not claim** a real EHR, device-API, or Medicare-program integration anywhere in the UI or docs.
 - **Do not use** real patient data, real people's names, or any real vendor's EHR branding in the mock.
 - **Do not name** drugs, doses, or specific treatments in any insight text.
 - Segments and cohort views show **counts, never dollars**, and the worklist is **never ranked by contract or measure value**, only by clinical risk.

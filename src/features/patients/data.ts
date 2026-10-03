@@ -266,6 +266,11 @@ export function indicatorsFor(
   )
 }
 
+/** Short names of the measurements outside their normal range this week. */
+export function outOfRangeLabels(patientId: string): string[] {
+  return indicatorsFor(patientId, offMetrics(patientId)).map((i) => i.label)
+}
+
 /** Every measurement we have for the patient, as arrows. */
 export function allIndicators(patientId: string): Indicator[] {
   const { daily } = getIndex()
@@ -286,7 +291,6 @@ export function getDeviceGroups(patientId: string): DeviceGroup[] {
   const profile = getDataset().profiles.find((p) => p.id === patientId)
   if (!profile) return []
   const values = getDeviceValues()
-  const resolved = getDataset().resolved
   const connections = getDataset().connections
 
   const hasVisualize = connections.some(
@@ -295,18 +299,6 @@ export function getDeviceGroups(patientId: string): DeviceGroup[] {
   const sources = [...new Set(profile.devices.map((d) => d.source))]
   if (hasVisualize && !sources.includes('visualize_ai')) {
     sources.push('visualize_ai')
-  }
-
-  const dailyResolved = new Map<string, (number | null)[]>()
-  for (const point of resolved) {
-    if (point.patient_id !== patientId) continue
-    const key = `${point.patient_id}|${point.metric}`
-    let days = dailyResolved.get(key)
-    if (!days) {
-      days = new Array<number | null>(N_DAYS).fill(null)
-      dailyResolved.set(key, days)
-    }
-    days[dayIndex(point.date)] = point.value
   }
 
   return sources.map((source) => {
@@ -318,7 +310,7 @@ export function getDeviceGroups(patientId: string): DeviceGroup[] {
     const series = metrics
       .flatMap((metric) => {
         if (isVisualize) {
-          const daily = dailyResolved.get(`${patientId}|${metric}`)
+          const daily = getIndex().daily.get(`${patientId}|${metric}`)
           return daily ? buildSeries(patientId, metric, daily) : []
         }
         const daily = values.get(`${patientId}|${source}|${metric}`)
@@ -341,6 +333,8 @@ let cachedPatients: PatientListItem[] | null = null
 export function getAllPatients(): PatientListItem[] {
   if (cachedPatients) return cachedPatients
   const { charts, profiles } = getDataset()
+  // Index the device readings now, while the list shows, so the first modal opens fast.
+  getDeviceValues()
   const devicesById = new Map(profiles.map((p) => [p.id, p.devices]))
 
   cachedPatients = [...charts]
