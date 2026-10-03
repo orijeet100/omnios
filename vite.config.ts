@@ -21,6 +21,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // The 3D viewer is lazy-loaded, so Vite would find these late and re-optimize
+  // mid-session ("Outdated Optimize Dep"). Pre-bundle them at startup instead.
+  optimizeDeps: {
+    include: ['three', '@react-three/fiber', '@react-three/drei'],
+  },
   server: {
     port: 3000,
     strictPort: true,

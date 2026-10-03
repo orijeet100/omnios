@@ -10,8 +10,8 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import type { SegmentCardData } from './segments'
 
 const ICONS: Partial<Record<SegmentId, LucideIcon>> = {
@@ -110,8 +110,8 @@ export function SegmentRow({ segment }: { segment: SegmentCardData }) {
                 segment.count > 5
                   ? 'text-red-600'
                   : segment.count > 0
-                  ? 'text-amber-600'
-                  : 'text-green-600'
+                    ? 'text-amber-600'
+                    : 'text-green-600'
               }`}
             >
               {segment.count}

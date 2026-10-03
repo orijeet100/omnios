@@ -118,6 +118,22 @@ The full clinical record (`PatientChart`: medications, labs, clinic vitals, enco
 - The mock generates the chart from the **same patient profile** as the device data so the two layers agree (for example A1c vs mean CGM glucose, clinic BP vs home BP, an ER encounter after a planted true-positive story). That coherence is a mock-generator concern, not an API concern.
 - Planted-story ground truth (ER dates, expected flag dates) is mock-only and is not part of this contract.
 
+## Body scans (Visualize)
+
+A `BodyScan` (`src/contracts/body-scan.ts`) is one whole-body scan from the
+Visualize SDK: measurements computed on the phone plus a 3D point cloud. It is
+a rare event (weeks apart), not a daily reading, so it is its own entity.
+
+- **Measurements:** height and weight (the scan's inputs), BMI, body fat %, lean
+  muscle and bone mass (lb), girths (neck, waist, lower waist, hip, in), and
+  advanced ratios (waist-hip, waist-height, central adiposity, fat mass index,
+  skeletal muscle index). Units are Visualize's: inches and pounds.
+- **3D:** `point_cloud` points at a binary file: N x 3 float32 (x, y, z in
+  metres, y up) then N x 3 uint8 (red, green, blue). Head and torso only.
+- **Privacy:** we keep height and weight only: no name, age or Visualize gender.
+  The mock replicates 3 real consented scans across all patients by sex.
+- Still to build: an endpoint to receive scans and one to read a patient's scan.
+
 ## Rules the contract encodes
 
 - **Risk is honest.** `RiskAssessment` comes from data. `POST /route` and notification actions change `WorklistItem.status`, `snooze_until`, `routed_at` only. `risk_at_routing` is recorded so re-escalation can compare.

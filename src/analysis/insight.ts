@@ -16,7 +16,7 @@ export function generateInsightFeatures(
   risk: RiskAssessment,
   deviations: MetricDeviation[],
   confidence: DataConfidence,
-  sources: SourceId[],
+  sources: SourceId[]
 ): InsightFeatures {
   const significantDeviations = deviations
     .filter((d) => Math.abs(d.z_score) > 1.5 || Math.abs(d.delta_pct) > 10)
@@ -70,7 +70,7 @@ export function generateInsightText(features: InsightFeatures): InsightText {
 
 export function generateInsightNote(
   features: InsightFeatures,
-  text: InsightText,
+  text: InsightText
 ): InsightNote {
   return {
     id: `insight-${features.patient_id}-${features.as_of}`,
@@ -83,9 +83,7 @@ export function generateInsightNote(
   }
 }
 
-function buildWhatChanged(
-  changes: InsightFeatures['changes'],
-): string {
+function buildWhatChanged(changes: InsightFeatures['changes']): string {
   if (changes.length === 0) return 'No significant changes detected'
 
   const parts = changes.map((c) => {
@@ -97,8 +95,11 @@ function buildWhatChanged(
   return parts.join('; ')
 }
 
-function buildConfidenceText(confidence: InsightFeatures['confidence']): string {
-  const levelLabel = confidence.level.charAt(0).toUpperCase() + confidence.level.slice(1)
+function buildConfidenceText(
+  confidence: InsightFeatures['confidence']
+): string {
+  const levelLabel =
+    confidence.level.charAt(0).toUpperCase() + confidence.level.slice(1)
   return `${levelLabel} (${confidence.reasons.join('; ')})`
 }
 
