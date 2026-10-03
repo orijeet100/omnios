@@ -1,119 +1,66 @@
-# Shadcn Admin Dashboard
+# OmniOS
 
-Admin Dashboard UI crafted with Shadcn and Vite. Built with responsiveness and accessibility in mind.
+A unified wearable-data and insight layer for hospitals that manage Medicaid
+patients under value-based contracts. It brings device data into one layer,
+shows care managers which patients are drifting off target, and hands cases to
+clinicians. OmniOS gives insight; clinicians make every clinical decision.
 
-![alt text](public/images/shadcn-admin.png)
+This repo is a **hackathon demo**. All patients and all data are synthetic, and
+nothing here is a real EHR, device or Medicaid integration.
 
-[![Sponsored by Clerk](https://img.shields.io/badge/Sponsored%20by-Clerk-5b6ee1?logo=clerk)](https://go.clerk.com/GttUAaK)
-
-I've been creating dashboard UIs at work and for my personal projects. I always wanted to make a reusable collection of dashboard UI for future projects; and here it is now. While I've created a few custom components, some of the code is directly adapted from ShadcnUI examples.
-
-> This is not a starter project (template) though. I'll probably make one in the future.
-
-## Features
-
-- Light/dark mode
-- Responsive
-- Accessible
-- With built-in Sidebar component
-- Global search command
-- 10+ pages
-- Extra custom components
-- RTL support
-
-<details>
-<summary>Customized Components (click to expand)</summary>
-
-This project uses Shadcn UI components, but some have been slightly modified for better RTL (Right-to-Left) support and other improvements. These customized components differ from the original Shadcn UI versions.
-
-If you want to update components using the Shadcn CLI (e.g., `npx shadcn@latest add <component>`), it's generally safe for non-customized components. For the listed customized ones, you may need to manually merge changes to preserve the project's modifications and avoid overwriting RTL support or other updates.
-
-> If you don't require RTL support, you can safely update the 'RTL Updated Components' via the Shadcn CLI, as these changes are primarily for RTL compatibility. The 'Modified Components' may have other customizations to consider.
-
-### Modified Components
-
-- scroll-area
-- sonner
-- separator
-
-### RTL Updated Components
-
-- alert-dialog
-- calendar
-- command
-- dialog
-- dropdown-menu
-- select
-- table
-- sheet
-- sidebar
-- switch
-
-**Notes:**
-
-- **Modified Components**: These have general updates, potentially including RTL adjustments.
-- **RTL Updated Components**: These have specific changes for RTL language support (e.g., layout, positioning).
-- For implementation details, check the source files in `src/components/ui/`.
-- All other Shadcn UI components in the project are standard and can be safely updated via the CLI.
-
-</details>
-
-## Tech Stack
-
-**UI:** [ShadcnUI](https://ui.shadcn.com) (TailwindCSS + RadixUI)
-
-**Build Tool:** [Vite](https://vitejs.dev/)
-
-**Routing:** [TanStack Router](https://tanstack.com/router/latest)
-
-**Type Checking:** [TypeScript](https://www.typescriptlang.org/)
-
-**Linting/Formatting:** [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
-
-**Icons:** [Lucide Icons](https://lucide.dev/icons/), [Tabler Icons](https://tabler.io/icons) (Brand icons only)
-
-**Auth (partial):** [Clerk](https://go.clerk.com/GttUAaK)
-
-## Run Locally
-
-Clone the project
+## Run it
 
 ```bash
-  git clone https://github.com/satnaing/shadcn-admin.git
+npm install
+npm run dev        # http://localhost:3000 (the port is fixed)
 ```
 
-Go to the project directory
+Other commands:
 
 ```bash
-  cd shadcn-admin
+npm run build      # typecheck + production build
+npm run lint       # eslint
+npm run format     # prettier
+npx vitest run src/mock --browser.enabled=false   # data generator tests (Node, fast)
 ```
 
-Install dependencies
+## What you see
 
-```bash
-  npm install
+| Screen                         | What it does                                                                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Dashboard** (`/`)            | "Patients showing abnormalities": one wide card per category (BP above target, glucose low, recovery signals off, not enough data) with a count. |
+| **Segment** (`/segments/<id>`) | Square tiles for the patients in that category, with small trend lines.                                                                          |
+| **All patients** (`/patients`) | A tile for every patient with a trend line per measurement.                                                                                      |
+| **Patient modal**              | Charts of the measurements that look off, abnormal weeks in red, plus Dismiss and Send to doctor (placeholders).                                 |
+
+## How it works
+
+```
+mock generator -> unify (resolve) -> weekly check -> segments -> screens
+src/mock            src/mock           src/mock       src/mock    src/features
 ```
 
-Start the server
+1. `src/mock` creates 100 synthetic patients with 13 weeks of daily device
+   data, runs the real unification and weekly-check logic, and exposes the
+   result. It is the stand-in for the backend.
+2. `src/contracts` defines the shapes and endpoints the real backend must
+   implement (zod schemas).
+3. `src/features` turns that data into the screens above.
 
-```bash
-  npm run dev
-```
+A day is shown in red when the weekly check says its week is off, so the red in
+the charts always matches the counts on the dashboard.
 
-## Sponsoring this project ❤️
+## Where to read next
 
-If you find this project helpful or use this in your own work, consider [sponsoring me](https://github.com/sponsors/satnaing) to support development and maintenance. You can [buy me a coffee](https://buymeacoffee.com/satnaing) as well. Don’t worry, every penny helps. Thank you! 🙏
+| File                                           | What it is                                                                         |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [`CLAUDE.md`](CLAUDE.md)                       | Guide for AI agents and new developers: structure, rules, gotchas. **Start here.** |
+| [`context.md`](context.md)                     | What we are building and why; the non-negotiable product rules.                    |
+| [`docs/design-brief.md`](docs/design-brief.md) | The visual and interaction rules every screen follows.                             |
+| [`docs/api-contract.md`](docs/api-contract.md) | The backend contract, for the engineer building the real API.                      |
+| [`src/mock/README.md`](src/mock/README.md)     | The data generator: pipeline, what to port, rules not to break.                    |
 
-For questions or sponsorship inquiries, feel free to reach out at [satnaingdev@gmail.com](mailto:satnaingdev@gmail.com).
+## Stack
 
-### Current Sponsor
-
-- [Clerk](https://go.clerk.com/GttUAaK) - authentication and user management for the modern web
-
-## Author
-
-Crafted with 🤍 by [@satnaing](https://github.com/satnaing)
-
-## License
-
-Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
+React 19, Vite, TypeScript, TanStack Router, Tailwind CSS v4, shadcn/ui,
+Recharts, zod. Package manager: npm.

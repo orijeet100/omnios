@@ -1,36 +1,72 @@
-import { useLayout } from '@/context/layout-provider'
+import { Link, useLocation } from '@tanstack/react-router'
+import { HeartPulse, LayoutDashboard, Users } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar'
-// import { AppTitle } from './app-title'
-import { sidebarData } from './data/sidebar-data'
-import { NavGroup } from './nav-group'
-import { NavUser } from './nav-user'
-import { TeamSwitcher } from './team-switcher'
 
 export function AppSidebar() {
-  const { collapsible, variant } = useLayout()
-  return (
-    <Sidebar collapsible={collapsible} variant={variant}>
-      <SidebarHeader>
-        <TeamSwitcher teams={sidebarData.teams} />
+  const { setOpenMobile } = useSidebar()
+  const pathname = useLocation({ select: (location) => location.pathname })
+  // Segment pages belong to the dashboard, so it stays highlighted there.
+  const dashboardActive = pathname === '/' || pathname.startsWith('/segments')
 
-        {/* Replace <TeamSwitch /> with the following <AppTitle />
-         /* if you want to use the normal app title instead of TeamSwitch dropdown */}
-        {/* <AppTitle /> */}
+  return (
+    <Sidebar collapsible='icon' variant='inset'>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size='lg' asChild>
+              <Link to='/' onClick={() => setOpenMobile(false)}>
+                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'>
+                  <HeartPulse className='size-4' />
+                </div>
+                <div className='grid flex-1 text-start text-sm leading-tight'>
+                  <span className='truncate font-semibold'>OmniOS</span>
+                  <span className='truncate text-xs'>Care team</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {sidebarData.navGroups.map((props) => (
-          <NavGroup key={props.title} {...props} />
-        ))}
+        <SidebarGroup>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={dashboardActive}
+                tooltip='Dashboard'
+              >
+                <Link to='/' onClick={() => setOpenMobile(false)}>
+                  <LayoutDashboard />
+                  <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/patients')}
+                tooltip='All patients'
+              >
+                <Link to='/patients' onClick={() => setOpenMobile(false)}>
+                  <Users />
+                  <span>All patients</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={sidebarData.user} />
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )
