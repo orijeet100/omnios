@@ -26,12 +26,12 @@ npx vitest run src/mock --browser.enabled=false   # data generator tests (Node, 
 
 ## What you see
 
-| Screen                         | What it does                                                                                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Dashboard** (`/`)            | "Patients showing abnormalities": one wide card per category (BP above target, glucose low, recovery signals off, not enough data) with a count. |
-| **Segment** (`/segments/<id>`) | Square tiles for the patients in that category, with small trend lines.                                                                          |
-| **All patients** (`/patients`) | A tile for every patient with a trend line per measurement.                                                                                      |
-| **Patient modal**              | Charts of the measurements that look off, abnormal weeks in red, plus Dismiss and Send to doctor (placeholders).                                 |
+| Screen                          | What it does                                                                                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard** (`/`)             | "Patients showing abnormalities": one wide row per category (BP above normal, glucose time in range low, early warning signs) with a count. |
+| **Category** (`/segments/<id>`) | Square patient cards for that category: photo, name, age, sex and arrows (red out of range, green normal).                                  |
+| **All patients** (`/patients`)  | A card for every patient, with a search box (name, id, age, sex, condition or device).                                                      |
+| **Patient modal**               | One tab per device with charts (abnormal weeks in red), then Dismiss (closes) and Send to doctor (placeholder).                             |
 
 ## How it works
 

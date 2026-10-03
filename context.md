@@ -67,7 +67,7 @@ The hospital is the customer, but the product has exactly these users and no oth
 4. **Honest risk.** A patient's risk score always reflects the data. Routing a case changes its **worklist status**, never its risk.
 5. **Human in the loop, with an audit trail** of who saw what and what they did.
 6. **No new app for clinicians.** The product meets them inside the EHR.
-7. **Demo data is labeled as demo data.** All patients are synthetic, and the UI should make that clear (small "Synthetic data" badge).
+7. **Demo data is synthetic.** All patients are synthetic. **[Owner decision: the UI no longer shows a "Synthetic data" badge.]** Never present the data as real patient data, and keep every claim honest in the docs and the spoken pitch.
 
 ---
 
@@ -285,7 +285,7 @@ If time runs short, cut in this order: closed loop, polish on the EHR mock, opti
 - [ ] "Route to clinician" produces the confirmation, status change, and EHR notification
 - [ ] Re-escalation works for a snoozed patient who worsens
 - [ ] Every insight is insight-only, with generic suggestions and no drugs or doses
-- [ ] All data is visibly labeled synthetic
+- [ ] All data is synthetic, with no real patient data (the on-screen label was removed at the owner's request)
 
 ---
 

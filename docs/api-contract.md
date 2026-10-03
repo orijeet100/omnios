@@ -25,7 +25,7 @@ ResolvedMetric                the unified value + candidates[] + conflict flag
    │   analysis (backend)
 MetricDeviation, DataConfidence, RiskAssessment
    │   weekly check (simple threshold on the weekly average)
-WeeklyFlag  ->  Segment       "BP above target", "Glucose time in range low", ... (counts)
+WeeklyFlag  ->  Segment       "BP above normal", "Glucose time in range low", ... (counts)
    │   insight
 InsightNote                   structured features -> prose (the only AI step)
    │

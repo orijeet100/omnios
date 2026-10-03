@@ -1,36 +1,28 @@
 import {
   CHECKS,
+  CONDITION_LABELS,
   METRICS,
+  SOURCES,
   type ConditionCode,
   type Metric,
   type SegmentId,
+  type SourceId,
   type WeeklyFlag,
 } from '@/contracts'
 import { getDataset } from '@/mock'
 import { N_DAYS, N_WEEKS, dateOfDay, dayIndex } from '@/mock/dates'
 
 /**
- * View-model for patient cards and charts, built from the mock dataset.
+ * View-model for patient cards, search and charts, built from the mock dataset.
  * A day is "abnormal" when the weekly check says that week is `off` for the
- * metric, so the red parts of a line always match the dashboard's counts.
+ * metric, so the red in a chart always matches the dashboard's counts.
  */
 
 const LATEST_WEEK = N_WEEKS - 1
-const MAX_TILE_TRENDS = 5
-
-/** Metrics shown as trends on a patient card, in display order. */
-const TREND_METRICS: Metric[] = [
-  'bp_systolic',
-  'glucose_time_in_range',
-  'resting_hr',
-  'hrv_rmssd',
-  'hrv_sdnn',
-  'spo2_avg',
-]
 
 const SHORT_LABELS: Partial<Record<Metric, string>> = {
   bp_systolic: 'BP',
-  bp_diastolic: 'BP low',
+  bp_diastolic: 'BP',
   glucose_time_in_range: 'Glucose',
   resting_hr: 'Heart rate',
   hrv_rmssd: 'HRV',
@@ -39,8 +31,10 @@ const SHORT_LABELS: Partial<Record<Metric, string>> = {
   spo2_avg: 'SpO2',
 }
 
-export const shortLabel = (metric: Metric) =>
+const shortLabel = (metric: Metric) =>
   SHORT_LABELS[metric] ?? METRICS[metric].label
+
+export const sexLabel = (sex: 'F' | 'M') => (sex === 'F' ? 'Female' : 'Male')
 
 export type SeriesPoint = {
   date: string
@@ -62,17 +56,28 @@ export type MetricSeries = {
   abnormalNow: boolean
 }
 
+/** Where a measurement sits against its normal range. */
+export type Indicator = { label: string; status: 'above' | 'below' | 'ok' }
+
 export type PatientListItem = {
   id: string
   name: string
   age: number
   sex: 'F' | 'M'
   conditions: ConditionCode[]
-  /** Trends shown on the card. */
-  series: MetricSeries[]
-  /** Metrics charted in the modal when the card is opened. */
-  modalMetrics: Metric[]
+  /** Arrows shown on the card. */
+  indicators: Indicator[]
   abnormal: boolean
+  /** Lower-case words people can search by: name, id, age, sex, conditions, devices. */
+  searchWords: string[]
+}
+
+/** One of a patient's devices with its charts, abnormal ones first. */
+export type DeviceGroup = {
+  source: SourceId
+  name: string
+  hasAbnormal: boolean
+  series: MetricSeries[]
 }
 
 type Index = {
@@ -82,7 +87,7 @@ type Index = {
 
 let cachedIndex: Index | null = null
 
-/** pid|metric -> daily values, and pid|metric -> weekly verdicts (index = week). */
+/** pid|metric -> daily resolved values, and pid|metric -> weekly verdicts (index = week). */
 function getIndex(): Index {
   if (cachedIndex) return cachedIndex
   const { resolved, weeklyFlags } = getDataset()
@@ -105,6 +110,25 @@ function getIndex(): Index {
   }
   cachedIndex = { daily, weekly }
   return cachedIndex
+}
+
+let cachedDeviceValues: Map<string, (number | null)[]> | null = null
+
+/** pid|source|metric -> that device's own daily values (plausible readings only). */
+function getDeviceValues() {
+  if (cachedDeviceValues) return cachedDeviceValues
+  cachedDeviceValues = new Map()
+  for (const o of getDataset().observations) {
+    if (o.quality_flag !== 'ok') continue
+    const key = `${o.patient_id}|${o.source_id}|${o.metric}`
+    let days = cachedDeviceValues.get(key)
+    if (!days) {
+      days = new Array<number | null>(N_DAYS).fill(null)
+      cachedDeviceValues.set(key, days)
+    }
+    days[dayIndex(o.date)] = o.value
+  }
+  return cachedDeviceValues
 }
 
 function abnormalRuns(weeks: WeeklyFlag[]): [number, number][] {
@@ -134,16 +158,13 @@ function referenceFor(
   return usual == null ? null : { label: `Usual ${usual}`, value: usual }
 }
 
-export function getMetricSeries(
+/** A chart series from daily values, coloured by the patient's weekly verdicts. */
+function buildSeries(
   patientId: string,
-  metric: Metric
-): MetricSeries | null {
-  const { daily, weekly } = getIndex()
-  const key = `${patientId}|${metric}`
-  const values = daily.get(key)
-  if (!values) return null
-  const weeks = weekly.get(key) ?? []
-
+  metric: Metric,
+  values: (number | null)[]
+): MetricSeries {
+  const weeks = getIndex().weekly.get(`${patientId}|${metric}`) ?? []
   return {
     metric,
     label: METRICS[metric].label,
@@ -160,70 +181,129 @@ export function getMetricSeries(
   }
 }
 
+const checkedMetrics = Object.keys(CHECKS) as Metric[]
+
 function latestStatus(patientId: string, metric: Metric) {
   return getIndex().weekly.get(`${patientId}|${metric}`)?.[LATEST_WEEK]?.status
 }
 
 /** Checked metrics that are off this week, optionally within one segment. */
 export function offMetrics(patientId: string, segment?: SegmentId): Metric[] {
-  return (Object.keys(CHECKS) as Metric[]).filter(
+  return checkedMetrics.filter(
     (metric) =>
       latestStatus(patientId, metric) === 'off' &&
       (!segment || CHECKS[metric]?.segment === segment)
   )
 }
 
-/** Checked metrics this patient lacks enough data for this week. */
-export function unjudgedMetrics(patientId: string): Metric[] {
-  return (Object.keys(CHECKS) as Metric[]).filter(
-    (metric) => latestStatus(patientId, metric) === 'insufficient_data'
-  )
+function statusOf(
+  patientId: string,
+  metric: Metric
+): Indicator['status'] | null {
+  const verdict = latestStatus(patientId, metric)
+  if (verdict === 'ok') return 'ok'
+  if (verdict !== 'off') return null
+  return CHECKS[metric]?.direction === 'below' ? 'below' : 'above'
 }
 
-/** A patient with two wearables can report both HRV kinds; show one. */
-export function withoutDuplicateHrv(metrics: Metric[]): Metric[] {
-  return metrics.filter(
-    (m) => !(m === 'hrv_sdnn' && metrics.includes('hrv_rmssd'))
-  )
-}
-
-function trendMetrics(patientId: string): Metric[] {
-  const { daily } = getIndex()
-  const present = TREND_METRICS.filter((m) => daily.has(`${patientId}|${m}`))
-  return withoutDuplicateHrv(present).slice(0, MAX_TILE_TRENDS)
-}
-
-export function seriesFor(
+/** One arrow per measurement (BP counts once), out-of-range first. */
+export function indicatorsFor(
   patientId: string,
   metrics: Metric[]
-): MetricSeries[] {
-  return metrics.flatMap((metric) => getMetricSeries(patientId, metric) ?? [])
+): Indicator[] {
+  const byLabel = new Map<string, Indicator>()
+  for (const metric of metrics) {
+    const status = statusOf(patientId, metric)
+    if (!status) continue
+    const label = shortLabel(metric)
+    const existing = byLabel.get(label)
+    if (!existing || (existing.status === 'ok' && status !== 'ok')) {
+      byLabel.set(label, { label, status })
+    }
+  }
+  return [...byLabel.values()].sort(
+    (a, b) => Number(a.status === 'ok') - Number(b.status === 'ok')
+  )
+}
+
+/** Every measurement we have for the patient, as arrows. */
+export function allIndicators(patientId: string): Indicator[] {
+  const { daily } = getIndex()
+  return indicatorsFor(
+    patientId,
+    checkedMetrics.filter((m) => daily.has(`${patientId}|${m}`))
+  )
+}
+
+/** The patient's devices, each with charts for its checked measurements. */
+export function getDeviceGroups(patientId: string): DeviceGroup[] {
+  const profile = getDataset().profiles.find((p) => p.id === patientId)
+  if (!profile) return []
+  const values = getDeviceValues()
+  const sources = [...new Set(profile.devices.map((d) => d.source))]
+
+  return sources.map((source) => {
+    const series = SOURCES[source].provides
+      .filter((metric) => CHECKS[metric])
+      .flatMap((metric) => {
+        const daily = values.get(`${patientId}|${source}|${metric}`)
+        return daily ? buildSeries(patientId, metric, daily) : []
+      })
+      .sort((a, b) => Number(b.abnormalNow) - Number(a.abnormalNow))
+    return {
+      source,
+      name: SOURCES[source].name,
+      hasAbnormal: series.some((s) => s.abnormalNow),
+      series,
+    }
+  })
 }
 
 let cachedPatients: PatientListItem[] | null = null
 
-/** Every patient with their usual trends, in a neutral fixed order (by id). */
+/** Every patient, in a neutral fixed order (by id). */
 export function getAllPatients(): PatientListItem[] {
   if (cachedPatients) return cachedPatients
-  const { charts } = getDataset()
+  const { charts, profiles } = getDataset()
+  const devicesById = new Map(profiles.map((p) => [p.id, p.devices]))
+
   cachedPatients = [...charts]
     .sort((a, b) => a.patient_id.localeCompare(b.patient_id))
     .map((chart) => {
       const id = chart.patient_id
-      const trends = trendMetrics(id)
-      const off = offMetrics(id)
+      const deviceNames = (devicesById.get(id) ?? []).map(
+        (d) => SOURCES[d.source].name
+      )
       return {
         id,
         name: chart.name,
         age: chart.age,
         sex: chart.sex,
         conditions: chart.conditions,
-        series: seriesFor(id, trends),
-        modalMetrics: off.length > 0 ? off : trends.slice(0, 2),
-        abnormal: off.length > 0,
+        indicators: allIndicators(id),
+        abnormal: offMetrics(id).length > 0,
+        searchWords: [
+          chart.name,
+          id,
+          String(chart.age),
+          sexLabel(chart.sex),
+          ...chart.conditions.map((c) => CONDITION_LABELS[c]),
+          ...deviceNames,
+        ]
+          .join(' ')
+          .toLowerCase()
+          .split(/\s+/),
       }
     })
   return cachedPatients
+}
+
+/** Every typed word must start a word of the patient's name, id, age, sex, condition or device. */
+export function matchesQuery(patient: PatientListItem, query: string): boolean {
+  const typed = query.toLowerCase().split(/\s+/).filter(Boolean)
+  return typed.every((word) =>
+    patient.searchWords.some((candidate) => candidate.startsWith(word))
+  )
 }
 
 export const formatValue = (value: number | null, unit: string) =>

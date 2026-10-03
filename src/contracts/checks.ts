@@ -54,12 +54,12 @@ export const SEGMENTS: Record<
   SegmentId,
   { label: string; ties_to: SegmentTie }
 > = {
-  bp_off: { label: 'BP above target', ties_to: 'contract_measure' },
+  bp_off: { label: 'BP above normal', ties_to: 'contract_measure' },
   glucose_off: {
     label: 'Glucose time in range low',
     ties_to: 'contract_measure',
   },
-  recovery_off: { label: 'Recovery signals off', ties_to: 'er_early_warning' },
+  recovery_off: { label: 'Early warning signs', ties_to: 'er_early_warning' },
   data_gap: { label: 'Not enough data', ties_to: 'data_quality' },
 }
 
