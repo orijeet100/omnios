@@ -1,10 +1,12 @@
 import type {
+  BodyScan,
   Observation,
   PatientChart,
   ResolvedMetric,
   SourceConnection,
   WeeklyFlag,
 } from '../contracts'
+import { bodyScanFor } from './body-scans'
 import { buildChart } from './chart'
 import { buildCohort } from './cohort'
 import { DATA_END, DATA_START, LAST_DAY, addDays, dateOfDay } from './dates'
@@ -37,6 +39,7 @@ export type Dataset = {
   resolved: ResolvedMetric[]
   weeklyFlags: WeeklyFlag[]
   connections: SourceConnection[]
+  bodyScans: BodyScan[]
   groundTruth: GroundTruth[]
 }
 
@@ -85,6 +88,7 @@ export function buildDataset(seed = DEFAULT_SEED): Dataset {
     resolved,
     weeklyFlags: computeWeeklyFlags(profiles, resolved),
     connections: buildConnections(profiles, observations),
+    bodyScans: profiles.map((p) => bodyScanFor(p, seed)),
     groundTruth: profiles.map((p) => ({
       patient_id: p.id,
       archetype: p.archetype,

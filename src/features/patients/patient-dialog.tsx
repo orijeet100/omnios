@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { BodyScanPanel } from './body-scan/body-scan-panel'
+import { VisualizeLogo } from './body-scan/visualize-logo'
 import {
   allIndicators,
   formatValue,
@@ -77,6 +79,9 @@ export function PatientDialog({
                       )}
                     </TabsTrigger>
                   ))}
+                  <TabsTrigger value='visualize'>
+                    <VisualizeLogo />
+                  </TabsTrigger>
                 </TabsList>
                 {devices.map((device) => (
                   <TabsContent
@@ -104,6 +109,9 @@ export function PatientDialog({
                     ))}
                   </TabsContent>
                 ))}
+                <TabsContent value='visualize' className='pt-4'>
+                  <BodyScanPanel patientId={shown.id} sex={shown.sex} />
+                </TabsContent>
               </Tabs>
             )}
           </>

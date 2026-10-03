@@ -57,11 +57,12 @@ The mock tests are pure logic, so use the Node command above.
 
 ```
 src/
-  contracts/      zod schemas + endpoint table (the backend contract)
+  contracts/      zod schemas + endpoint table (the backend contract), incl. body-scan.ts
   mock/           seeded synthetic data + unify + weekly check (see its README)
   features/
     dashboard/    dashboard rows, category page, category data helper
-    patients/     all-patients page + search, patient card, arrows, avatar, modal, chart, data helper
+    patients/     all-patients page + search, patient card, markers, avatar, modal, chart, data helper
+      body-scan/  the Visualize tab: lazy-loaded 3D point-cloud viewer + scan measurements
     errors/       not-found and general error screens
   components/
     layout/       app shell: sidebar, header, main
@@ -108,6 +109,24 @@ section 5: say "target" (never "limit", "baseline" or "threshold") in the UI.
 - "Not enough data" (`data_gap`) exists in the contract and generator but is
   deliberately not shown on the dashboard (it is a data-quality signal, not an
   abnormality).
+
+## Body scans (Visualize)
+
+Every patient has a real Visualize body scan: a 3D point cloud plus
+measurements. We have only 3 real scans (made with the owners' consent), so the
+mock gives each patient one scan of their own sex (2 male, 1 female), chosen
+from their id. The scan's own height, weight and measurements are used as they
+are; age and name are deliberately dropped.
+
+- Raw export: `data/bodyscan-export.zip` (not served). Run
+  `node scripts/prepare-body-scans.mjs` to rebuild `public/scans/*.bin`
+  (60,000-point clouds, 900 KB each) and `src/mock/body-scans/scans.json`.
+- Sex per scan is our own assignment in the script (`SEX_BY_MEMBER`).
+- The viewer (`three` + `@react-three/fiber` + `@react-three/drei`) is lazy
+  loaded and pre-bundled in `vite.config.ts` (`optimizeDeps.include`); without
+  that, Vite can show "Outdated Optimize Dep" after installing packages.
+- The clouds cover head and torso only, not the whole body.
+- Waist-ratio targets (`body-scan/targets.ts`) are placeholders **[VERIFY]**.
 
 ## Gotchas
 
