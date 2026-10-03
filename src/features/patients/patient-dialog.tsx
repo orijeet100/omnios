@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { Send, X, Edit3, Save, TrendingUp, TrendingDown, Minus, FileText } from 'lucide-react'
+import { Send, X, Edit3, Save, TrendingUp, TrendingDown, Minus, FileText, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -104,7 +104,7 @@ export function PatientDialog({
 
   return (
     <Dialog open={!!patient} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='max-w-5xl max-h-[90vh] overflow-y-auto p-0'>
+      <DialogContent className='max-w-6xl sm:max-w-6xl max-h-[92vh] w-full overflow-hidden p-0 flex flex-col'>
         {shown && (
           <>
             <DialogHeader className='p-6 pb-0 text-center'>
@@ -137,6 +137,7 @@ export function PatientDialog({
               )}
             </DialogHeader>
 
+            <div className='min-h-0 flex-1 overflow-y-auto'>
             <div className='p-6'>
               <Tabs
                 key={shown.id}
@@ -322,8 +323,11 @@ export function PatientDialog({
                   </CardContent>
                 </Card>
               )}
+            </div>
+            </div>
 
-              <div className='mt-6 flex items-center justify-end gap-3 border-t pt-4'>
+            <div className='border-t px-6 py-4'>
+              <div className='flex items-center justify-end gap-3'>
                 <Button variant='outline' onClick={onClose}>
                   <X className='h-4 w-4 mr-1' />
                   Dismiss

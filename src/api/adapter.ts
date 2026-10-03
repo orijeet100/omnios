@@ -394,7 +394,7 @@ export class MockApiAdapter {
       created_at: now.toISOString(),
       status: 'unread',
       priority: risk.score > 75 ? 'high' : risk.score > 50 ? 'medium' : 'low',
-      message: `${patientName} trending outside normal parameters. ${finalInsight.summary}`,
+      message: `${patientName} trending outside normal parameters. ${finalInsight.what_changed}`,
       plan_notes: [],
     }
     this.notifications.push(notification)
