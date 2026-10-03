@@ -1,24 +1,23 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getApiAdapter } from '@/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+import { createFileRoute } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
+import { getApiAdapter } from '@/api'
 import { TrendingUp, TrendingDown, Minus, Send, Zap, Clock } from 'lucide-react'
 import { toast } from 'sonner'
-import { useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export const Route = createFileRoute('/_authenticated/worklist/')({
   component: WorklistPage,
 })
 
 const TREND_ICONS: Record<string, React.ReactNode> = {
-  up: <TrendingUp className="h-4 w-4 text-red-500" />,
-  down: <TrendingDown className="h-4 w-4 text-blue-500" />,
-  flat: <Minus className="h-4 w-4 text-gray-500" />,
+  up: <TrendingUp className='h-4 w-4 text-red-500' />,
+  down: <TrendingDown className='h-4 w-4 text-blue-500' />,
+  flat: <Minus className='h-4 w-4 text-gray-500' />,
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -63,41 +62,41 @@ function WorklistPage() {
 
   if (isLoading || !worklist) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-96" />
+      <div className='space-y-4'>
+        <Skeleton className='h-8 w-64' />
+        <Skeleton className='h-96' />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-2xl font-bold">Worklist</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className='text-2xl font-bold'>Worklist</h1>
+          <p className='text-sm text-muted-foreground'>
             Ranked by clinical risk — {worklist.length} patients
           </p>
         </div>
-        <Badge variant="secondary" className="text-xs">
+        <Badge variant='secondary' className='text-xs'>
           Synthetic data
         </Badge>
       </div>
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
+          <div className='flex items-center gap-2'>
+            <Zap className='h-4 w-4' />
             <CardTitle>Demo Controls</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={handleAdvanceClock}>
-              <Clock className="h-3 w-3 mr-1" />
+          <div className='flex items-center gap-2'>
+            <Button size='sm' variant='outline' onClick={handleAdvanceClock}>
+              <Clock className='mr-1 h-3 w-3' />
               Advance Clock 7 Days
             </Button>
-            <span className="text-xs text-muted-foreground">
+            <span className='text-xs text-muted-foreground'>
               Use "Worsen" on a routed patient to trigger re-escalation
             </span>
           </div>
@@ -109,32 +108,35 @@ function WorklistPage() {
           <CardTitle>Patient Queue</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          <div className='space-y-2'>
             {worklist.map((patient) => (
               <div
                 key={patient.patient_id}
-                className="flex items-center justify-between rounded-lg border p-4"
+                className='flex items-center justify-between rounded-lg border p-4'
               >
                 <Link
-                  to="/patients/$patientId"
+                  to='/patients/$patientId'
                   params={{ patientId: patient.patient_id }}
-                  className="flex items-center gap-4 flex-1"
+                  className='flex flex-1 items-center gap-4'
                 >
                   <div>
-                    <p className="font-medium">{patient.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {patient.age}y {patient.sex} • {patient.conditions.join(', ')}
+                    <p className='font-medium'>{patient.name}</p>
+                    <p className='text-sm text-muted-foreground'>
+                      {patient.age}y {patient.sex} •{' '}
+                      {patient.conditions.join(', ')}
                     </p>
                   </div>
                 </Link>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
+                <div className='flex items-center gap-4'>
+                  <div className='flex items-center gap-1'>
                     {TREND_ICONS[patient.risk_trend]}
-                    <span className="text-sm capitalize">{patient.risk_trend}</span>
+                    <span className='text-sm capitalize'>
+                      {patient.risk_trend}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold">{patient.risk_score}</p>
-                    <p className="text-xs text-muted-foreground capitalize">
+                  <div className='text-right'>
+                    <p className='text-lg font-bold'>{patient.risk_score}</p>
+                    <p className='text-xs text-muted-foreground capitalize'>
                       {patient.risk_tier}
                     </p>
                   </div>
@@ -142,21 +144,24 @@ function WorklistPage() {
                     {patient.status.replace(/_/g, ' ')}
                   </Badge>
                   <Button
-                    size="sm"
-                    variant="outline"
+                    size='sm'
+                    variant='outline'
                     onClick={() => handleRoute(patient.patient_id)}
-                    disabled={routingId === patient.patient_id || patient.status === 'routed'}
+                    disabled={
+                      routingId === patient.patient_id ||
+                      patient.status === 'routed'
+                    }
                   >
-                    <Send className="h-3 w-3 mr-1" />
+                    <Send className='mr-1 h-3 w-3' />
                     Route
                   </Button>
                   <Button
-                    size="sm"
-                    variant="ghost"
+                    size='sm'
+                    variant='ghost'
                     onClick={() => handleWorsen(patient.patient_id)}
                     disabled={worseningId === patient.patient_id}
                   >
-                    <Zap className="h-3 w-3 mr-1" />
+                    <Zap className='mr-1 h-3 w-3' />
                     Worsen
                   </Button>
                 </div>

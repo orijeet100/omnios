@@ -1,24 +1,3 @@
-import type {
-  AuditEvent,
-  ClinicianAction,
-  DataConfidence,
-  InsightNote,
-  MetricDeviation,
-  Notification,
-  Observation,
-  PatientChart,
-  PatientSummary,
-  ResolvedMetric,
-  RiskAssessment,
-  Segment,
-  SourceConnection,
-  SyncRun,
-  WorklistItem,
-  WorklistStatus,
-} from '../contracts'
-import { SOURCES } from '../contracts'
-import { getDataset, computeSegments, generateObservations, resolve } from '../mock'
-import type { Dataset } from '../mock'
 import {
   buildCohortTrends,
   buildTierCounts,
@@ -32,6 +11,28 @@ import {
   generateInsightNote,
   generateInsightText,
 } from '../analysis'
+import type {
+  AuditEvent,
+  ClinicianAction,
+  InsightNote,
+  Notification,
+  Observation,
+  PatientChart,
+  PatientSummary,
+  ResolvedMetric,
+  SourceConnection,
+  SourceId,
+  SyncRun,
+  WorklistStatus,
+} from '../contracts'
+import { SOURCES } from '../contracts'
+import {
+  getDataset,
+  computeSegments,
+  generateObservations,
+  resolve,
+} from '../mock'
+import type { Dataset } from '../mock'
 
 const SNOOZE_DAYS = 14
 
@@ -98,13 +99,13 @@ export class MockApiAdapter {
 
   private getSourcesForPatient(patientId: string) {
     const resolved = this.dataset.resolved.filter(
-      (r) => r.patient_id === patientId,
+      (r) => r.patient_id === patientId
     )
     const sourceSet = new Set<string>()
     for (const r of resolved) {
       sourceSet.add(r.resolved_from)
     }
-    return [...sourceSet] as keyof typeof SOURCES[]
+    return [...sourceSet] as SourceId[]
   }
 
   private runAnalysis() {
@@ -113,25 +114,25 @@ export class MockApiAdapter {
     const baselines = computeBaselinesForAll(
       this.dataset.resolved,
       patientIds,
-      this.asOf,
+      this.asOf
     )
     const deviations = computeDeviationsForAll(
       this.dataset.resolved,
       baselines,
-      this.asOf,
+      this.asOf
     )
     const confidences = computeConfidenceForAll(
       this.dataset.resolved,
       this.dataset.observations,
       this.dataset.connections,
       patientIds,
-      this.asOf,
+      this.asOf
     )
     const risks = computeRiskForAll(
       deviations,
       this.getConditionsMap(),
       confidences,
-      this.asOf,
+      this.asOf
     )
 
     const insights = new Map<string, InsightNote>()
@@ -149,7 +150,7 @@ export class MockApiAdapter {
         risk,
         devs,
         conf,
-        sources,
+        sources
       )
       const text = generateInsightText(features)
       insights.set(p.id, generateInsightNote(features, text))
@@ -159,22 +160,21 @@ export class MockApiAdapter {
   }
 
   listSources() {
-    return Object.values(SOURCES)
+    return (
+      Object.entries(SOURCES) as [SourceId, (typeof SOURCES)[SourceId]][]
+    ).map(([id, source]) => ({ id, ...source }))
   }
 
   getSourceSummary() {
-    return Object.values(SOURCES).map((s) => {
-      const conns = this.dataset.connections.filter(
-        (c) => c.source_id === s.id,
-      )
+    return this.listSources().map((s) => {
+      const conns = this.dataset.connections.filter((c) => c.source_id === s.id)
       return {
         source_id: s.id,
         patients_connected: conns.filter((c) => c.status === 'connected')
           .length,
         patients_stale: conns.filter((c) => c.status === 'stale').length,
         patients_error: conns.filter((c) => c.status === 'error').length,
-        last_sync_at:
-          conns.find((c) => c.last_sync_at)?.last_sync_at ?? null,
+        last_sync_at: conns.find((c) => c.last_sync_at)?.last_sync_at ?? null,
       }
     })
   }
@@ -185,26 +185,20 @@ export class MockApiAdapter {
 
   listSyncRuns(patientId?: string): SyncRun[] {
     if (patientId) {
-      return this.syncRuns.filter(
-        (s) => s.connection_id.startsWith(patientId),
-      )
+      return this.syncRuns.filter((s) => s.connection_id.startsWith(patientId))
     }
     return this.syncRuns
   }
 
-  getObservations(
-    patientId: string,
-    from: string,
-    to: string,
-  ): Observation[] {
+  getObservations(patientId: string, from: string, to: string): Observation[] {
     return this.dataset.observations.filter(
-      (o) => o.patient_id === patientId && o.date >= from && o.date <= to,
+      (o) => o.patient_id === patientId && o.date >= from && o.date <= to
     )
   }
 
   getResolvedSeries(patientId: string, from: string, to: string) {
     const resolved = this.dataset.resolved.filter(
-      (r) => r.patient_id === patientId && r.date >= from && r.date <= to,
+      (r) => r.patient_id === patientId && r.date >= from && r.date <= to
     )
 
     const byMetric = new Map<string, ResolvedMetric[]>()
@@ -243,15 +237,18 @@ export class MockApiAdapter {
       attributed_to_hospital: true,
     }
 
+    const only = <V>(value: V | undefined) =>
+      new Map<string, V>(value === undefined ? [] : [[patientId, value]])
+
     const worklistItem = buildWorklist(
       [patient],
-      new Map([[patientId, risk]]),
-      new Map([[patientId, confidence]]),
-      new Map([[patientId, insight]]),
-      new Map([[patientId, this.worklistStatuses.get(patientId)]]),
-      new Map([[patientId, this.routedAt.get(patientId)]]),
-      new Map([[patientId, this.snoozeUntil.get(patientId)]]),
-      new Map([[patientId, this.riskAtRouting.get(patientId)]]),
+      only(risk),
+      only(confidence),
+      only(insight ?? undefined),
+      only(this.worklistStatuses.get(patientId)),
+      only(this.routedAt.get(patientId)),
+      only(this.snoozeUntil.get(patientId)),
+      only(this.riskAtRouting.get(patientId))
     )[0]
 
     return {
@@ -260,6 +257,7 @@ export class MockApiAdapter {
       confidence,
       deviations: devs,
       worklist: worklistItem,
+      insight,
     }
   }
 
@@ -268,7 +266,7 @@ export class MockApiAdapter {
   }
 
   getCohortSummary() {
-    const { risks, insights } = this.runAnalysis()
+    const { risks } = this.runAnalysis()
     const segments = this.getCohortSegments(this.asOf).segments
     const trends = buildCohortTrends(segments, risks)
     const tierCounts = buildTierCounts(risks)
@@ -285,13 +283,14 @@ export class MockApiAdapter {
     return computeSegments(
       this.dataset.profiles,
       this.dataset.weeklyFlags,
-      weekStart,
+      weekStart
     )
   }
 
   getPatientWeeklyFlags(patientId: string, from: string, to: string) {
     return this.dataset.weeklyFlags.filter(
-      (f) => f.patient_id === patientId && f.week_start >= from && f.week_start <= to,
+      (f) =>
+        f.patient_id === patientId && f.week_start >= from && f.week_start <= to
     )
   }
 
@@ -301,6 +300,7 @@ export class MockApiAdapter {
       patient_id: p.patient_id,
       name: p.name,
       age: p.age,
+      sex: p.sex,
       conditions: p.conditions,
     }))
 
@@ -312,7 +312,7 @@ export class MockApiAdapter {
       this.worklistStatuses,
       this.routedAt,
       this.snoozeUntil,
-      this.riskAtRouting,
+      this.riskAtRouting
     )
 
     return checkReescalation(worklist, risks)
@@ -329,26 +329,13 @@ export class MockApiAdapter {
     return {
       ...insight,
       suggestion: edited.suggestion,
-      features: {
-        ...insight.features,
-        changes: [
-          ...insight.features.changes,
-          {
-            metric: 'prescription_suggestions' as const,
-            unit: '',
-            delta_abs: 0,
-            delta_pct: 0,
-            direction: 'up' as const,
-          },
-        ],
-      },
     }
   }
 
   updateInsightNote(
     patientId: string,
     suggestion: string,
-    prescriptionSuggestions: string,
+    prescriptionSuggestions: string
   ): void {
     this.editedNotes.set(patientId, {
       suggestion,
@@ -370,7 +357,7 @@ export class MockApiAdapter {
   }
 
   routePatient(patientId: string, actorId: string) {
-    const { risks, confidences, insights } = this.runAnalysis()
+    const { risks, insights } = this.runAnalysis()
     const risk = risks.get(patientId)
     const insight = insights.get(patientId)
 
@@ -429,7 +416,7 @@ export class MockApiAdapter {
     notificationId: string,
     action: ClinicianAction,
     actorId: string,
-    text?: string,
+    text?: string
   ) {
     const notification = this.notifications.find((n) => n.id === notificationId)
     if (!notification) return null
@@ -474,7 +461,7 @@ export class MockApiAdapter {
 
     const worklist = this.listWorklist()
     const worklistItem = worklist.find(
-      (w) => w.patient_id === notification.patient_id,
+      (w) => w.patient_id === notification.patient_id
     )
 
     return {
@@ -493,9 +480,6 @@ export class MockApiAdapter {
   worsenPatient(patientId: string) {
     const profile = this.dataset.profiles.find((p) => p.id === patientId)
     if (!profile) return null
-
-    const worsenObs: Observation[] = []
-    const today = this.asOf
 
     const baseProfile = { ...profile }
     baseProfile.physio = {

@@ -4,7 +4,7 @@ const RE_ESCALATION_MARGIN = 15
 
 export function checkReescalation(
   worklist: WorklistItem[],
-  risks: Map<string, RiskAssessment>,
+  risks: Map<string, RiskAssessment>
 ): WorklistItem[] {
   return worklist.map((item) => {
     if (item.status !== 'routed') return item

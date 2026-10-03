@@ -1,7 +1,6 @@
 import type { Observation } from '../contracts'
-import { METRICS } from '../contracts'
-import type { PatientProfile } from '../mock/types'
 import { mulberry32, hashSeed, normal } from '../mock/random'
+import type { PatientProfile } from '../mock/types'
 
 export interface VisualizeScanResult {
   scan_id: string
@@ -25,7 +24,7 @@ const VISUALIZE_PATIENT_IDS = ['P001', 'P015', 'P032', 'P047', 'P063']
 
 export function generateVisualizeScan(
   patient: PatientProfile,
-  seed: number,
+  seed: number
 ): VisualizeScanResult {
   const rng = mulberry32(hashSeed(seed, patient.id, 'visualize'))
 
@@ -48,7 +47,7 @@ export function generateVisualizeScan(
 
 export function generateVisualizeWebhook(
   patient: PatientProfile,
-  seed: number,
+  seed: number
 ): VisualizeWebhookPayload {
   const scan = generateVisualizeScan(patient, seed)
   return {
@@ -61,7 +60,7 @@ export function generateVisualizeWebhook(
 
 export function visualizeToObservations(
   webhook: VisualizeWebhookPayload,
-  date: string,
+  date: string
 ): Observation[] {
   const { data } = webhook
   const ingestedAt = `${date}T06:00:00Z`

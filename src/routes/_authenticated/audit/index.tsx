@@ -1,11 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { getApiAdapter } from '@/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { createFileRoute } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
+import { getApiAdapter } from '@/api'
 import { ArrowLeft, FileText } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export const Route = createFileRoute('/_authenticated/audit/')({
   component: AuditPage,
@@ -29,56 +29,65 @@ function AuditPage() {
 
   if (isLoading || !events) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-96" />
+      <div className='space-y-4'>
+        <Skeleton className='h-8 w-64' />
+        <Skeleton className='h-96' />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link to="/population">
-          <ArrowLeft className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+    <div className='space-y-6'>
+      <div className='flex items-center gap-4'>
+        <Link to='/population'>
+          <ArrowLeft className='h-5 w-5 text-muted-foreground hover:text-foreground' />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Audit Log</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className='text-2xl font-bold'>Audit Log</h1>
+          <p className='text-sm text-muted-foreground'>
             {events.length} events recorded
           </p>
         </div>
-        <Badge variant="secondary" className="ml-auto text-xs">
+        <Badge variant='secondary' className='ml-auto text-xs'>
           Synthetic data
         </Badge>
       </div>
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
+          <div className='flex items-center gap-2'>
+            <FileText className='h-4 w-4' />
             <CardTitle>Audit Trail</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
           {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No audit events yet</p>
+            <p className='text-sm text-muted-foreground'>No audit events yet</p>
           ) : (
-            <div className="space-y-2">
+            <div className='space-y-2'>
               {events.map((event) => (
                 <div
                   key={event.event_id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className='flex items-center justify-between rounded-lg border p-3'
                 >
                   <div>
-                    <p className="text-sm font-medium">{event.action.replace(/_/g, ' ')}</p>
-                    <p className="text-xs text-muted-foreground">{event.detail}</p>
+                    <p className='text-sm font-medium'>
+                      {event.action.replace(/_/g, ' ')}
+                    </p>
+                    <p className='text-xs text-muted-foreground'>
+                      {event.detail}
+                    </p>
                   </div>
-                  <div className="text-right">
-                    <Badge className={ACTION_COLORS[event.action] ?? 'bg-gray-100 text-gray-800'}>
+                  <div className='text-right'>
+                    <Badge
+                      className={
+                        ACTION_COLORS[event.action] ??
+                        'bg-gray-100 text-gray-800'
+                      }
+                    >
                       {event.actor_role}
                     </Badge>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className='mt-1 text-xs text-muted-foreground'>
                       {new Date(event.timestamp).toLocaleString()}
                     </p>
                   </div>

@@ -322,6 +322,7 @@ export const worklistItemSchema = z.object({
   patient_id: z.string(),
   name: z.string(),
   age: z.number().int(),
+  sex: z.enum(['F', 'M']),
   conditions: z.array(conditionCodeSchema),
   risk_score: z.number().min(0).max(100),
   risk_tier: riskTierSchema,

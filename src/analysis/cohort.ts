@@ -1,9 +1,8 @@
 import type { CohortTrend, Metric, RiskAssessment, Segment } from '../contracts'
-import { METRICS } from '../contracts'
 
 export function buildCohortTrends(
   segments: Segment[],
-  risks: Map<string, RiskAssessment>,
+  risks: Map<string, RiskAssessment>
 ): CohortTrend[] {
   const trends: CohortTrend[] = []
 
@@ -63,7 +62,7 @@ function metricToDirection(metric: Metric): CohortTrend['direction'] {
 
 function computeTopDrivers(
   segment: Segment,
-  risks: Map<string, RiskAssessment>,
+  risks: Map<string, RiskAssessment>
 ): CohortTrend['top_drivers'] {
   const driverCounts = new Map<Metric, number>()
 
@@ -74,7 +73,7 @@ function computeTopDrivers(
     for (const driver of risk.drivers) {
       driverCounts.set(
         driver.metric,
-        (driverCounts.get(driver.metric) ?? 0) + 1,
+        (driverCounts.get(driver.metric) ?? 0) + 1
       )
     }
   }
@@ -86,7 +85,7 @@ function computeTopDrivers(
 }
 
 export function buildTierCounts(
-  risks: Map<string, RiskAssessment>,
+  risks: Map<string, RiskAssessment>
 ): Record<string, number> {
   const counts: Record<string, number> = {
     low: 0,

@@ -31,12 +31,13 @@ export interface CreatePrescriptionInput {
   diagnoses: string[]
 }
 
-const PHOTON_API_URL = import.meta.env.VITE_PHOTON_API_URL || 'https://api.neutron.health/graphql'
+const PHOTON_API_URL =
+  import.meta.env.VITE_PHOTON_API_URL || 'https://api.neutron.health/graphql'
 const PHOTON_AUTH_TOKEN = import.meta.env.VITE_PHOTON_AUTH_TOKEN || ''
 
 export async function createPrescription(
   input: CreatePrescriptionInput,
-  patientName: string,
+  patientName: string
 ): Promise<PhotonPrescription> {
   const mutation = `
     mutation CreatePrescription($input: CreatePrescriptionInput!) {
@@ -55,7 +56,7 @@ export async function createPrescription(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${PHOTON_AUTH_TOKEN}`,
+      Authorization: `Bearer ${PHOTON_AUTH_TOKEN}`,
     },
     body: JSON.stringify({
       query: mutation,
@@ -74,7 +75,9 @@ export async function createPrescription(
   })
 
   if (!response.ok) {
-    throw new Error(`Photon API error: ${response.status} ${response.statusText}`)
+    throw new Error(
+      `Photon API error: ${response.status} ${response.statusText}`
+    )
   }
 
   const result = await response.json()
@@ -105,7 +108,7 @@ export async function createPatient(
   patientId: string,
   name: string,
   dateOfBirth: string,
-  sex: 'M' | 'F',
+  sex: 'M' | 'F'
 ): Promise<PhotonPatient> {
   const mutation = `
     mutation CreatePatient($input: CreatePatientInput!) {
@@ -125,7 +128,7 @@ export async function createPatient(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${PHOTON_AUTH_TOKEN}`,
+      Authorization: `Bearer ${PHOTON_AUTH_TOKEN}`,
     },
     body: JSON.stringify({
       query: mutation,
@@ -141,7 +144,9 @@ export async function createPatient(
   })
 
   if (!response.ok) {
-    throw new Error(`Photon API error: ${response.status} ${response.statusText}`)
+    throw new Error(
+      `Photon API error: ${response.status} ${response.statusText}`
+    )
   }
 
   const result = await response.json()
@@ -165,7 +170,9 @@ export function getPhotonSandboxUrl(): string {
   return PHOTON_API_URL
 }
 
-export function buildPrescriptionMutation(input: CreatePrescriptionInput): string {
+export function buildPrescriptionMutation(
+  input: CreatePrescriptionInput
+): string {
   return `
     mutation CreatePrescription {
       createPrescription(input: {
