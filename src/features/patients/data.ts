@@ -131,40 +131,79 @@ function getDeviceValues() {
   return cachedDeviceValues
 }
 
-function abnormalRuns(weeks: WeeklyFlag[]): [number, number][] {
+type Reference = NonNullable<MetricSeries['reference']>
+
+/**
+ * The target: the dashed line and the cut-off for red. For BP and glucose it is
+ * a fixed value; for heart rate, HRV, breathing and SpO2 it is the patient's
+ * own usual level plus the allowed change. Either way the UI calls it "Target".
+ */
+function referenceFor(metric: Metric, weeks: WeeklyFlag[]): Reference | null {
+  const rule = CHECKS[metric]
+  if (!rule) return null
+
+  let value: number
+  if (rule.kind === 'absolute') {
+    value = rule.threshold
+  } else {
+    const usual = weeks[LATEST_WEEK]?.baseline
+    if (usual == null) return null
+    value =
+      rule.kind === 'baseline_delta'
+        ? usual + rule.threshold
+        : usual * (1 + rule.threshold / 100)
+  }
+  const rounded = Math.round(value * 10) / 10
+  return { label: `Target ${rounded}`, value }
+}
+
+const isBeyond = (
+  value: number,
+  limit: number,
+  direction: 'above' | 'below'
+) => (direction === 'above' ? value >= limit : value <= limit)
+
+/**
+ * Stretches of consecutive days beyond the limit, as inclusive day ranges. Days
+ * with no reading do not break a stretch. Each stretch starts at the reading
+ * before it so the red line begins where the line crosses the limit.
+ */
+function abnormalRuns(abnormal: boolean[], values: (number | null)[]) {
   const runs: [number, number][] = []
   let start: number | null = null
-  for (let week = 0; week <= N_WEEKS; week++) {
-    const off = weeks[week]?.status === 'off'
-    if (off && start == null) start = week * 7
-    if (!off && start != null) {
-      runs.push([start, week * 7 - 1])
+  let last = 0
+  let previousReading = 0
+  for (let day = 0; day < values.length; day++) {
+    if (values[day] == null) continue
+    if (abnormal[day]) {
+      if (start == null) start = previousReading
+      last = day
+    } else if (start != null) {
+      runs.push([start, last])
       start = null
     }
+    previousReading = day
   }
+  if (start != null) runs.push([start, last])
   return runs
 }
 
-function referenceFor(
-  metric: Metric,
-  weeks: WeeklyFlag[]
-): MetricSeries['reference'] {
-  const rule = CHECKS[metric]
-  if (!rule) return null
-  if (rule.kind === 'absolute') {
-    return { label: `Target ${rule.threshold}`, value: rule.threshold }
-  }
-  const usual = weeks[LATEST_WEEK]?.baseline
-  return usual == null ? null : { label: `Usual ${usual}`, value: usual }
-}
-
-/** A chart series from daily values, coloured by the patient's weekly verdicts. */
+/** A chart series from daily values; a day is abnormal when it is beyond the dashed line. */
 function buildSeries(
   patientId: string,
   metric: Metric,
   values: (number | null)[]
 ): MetricSeries {
   const weeks = getIndex().weekly.get(`${patientId}|${metric}`) ?? []
+  const reference = referenceFor(metric, weeks)
+  const direction = CHECKS[metric]?.direction ?? 'above'
+  const abnormal = values.map(
+    (value) =>
+      value != null &&
+      !!reference &&
+      isBeyond(value, reference.value, direction)
+  )
+
   return {
     metric,
     label: METRICS[metric].label,
@@ -172,11 +211,11 @@ function buildSeries(
     points: values.map((value, day) => ({
       date: dateOfDay(day),
       value,
-      abnormal: weeks[Math.floor(day / 7)]?.status === 'off',
+      abnormal: abnormal[day],
     })),
-    runs: abnormalRuns(weeks),
+    runs: abnormalRuns(abnormal, values),
     latest: [...values].reverse().find((value) => value != null) ?? null,
-    reference: referenceFor(metric, weeks),
+    reference,
     abnormalNow: weeks[LATEST_WEEK]?.status === 'off',
   }
 }

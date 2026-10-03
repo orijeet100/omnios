@@ -1,3 +1,4 @@
+import { CHECKS } from '@/contracts'
 import { describe, expect, it } from 'vitest'
 import {
   getAllPatients,
@@ -76,5 +77,42 @@ describe('device groups', () => {
     expect(cuff.hasAbnormal).toBe(true)
     // Out-of-range charts come first within a device.
     expect(cuff.series[0].abnormalNow).toBe(true)
+  })
+})
+
+describe('chart colouring', () => {
+  const allSeries = patients
+    .slice(0, 40)
+    .flatMap((p) => getDeviceGroups(p.id))
+    .flatMap((g) => g.series)
+
+  it('marks a day red exactly when it is past the dashed line', () => {
+    for (const series of allSeries) {
+      const direction = CHECKS[series.metric]!.direction
+      for (const { value, abnormal } of series.points) {
+        const past =
+          value != null &&
+          !!series.reference &&
+          (direction === 'above'
+            ? value >= series.reference.value
+            : value <= series.reference.value)
+        expect(abnormal).toBe(past)
+      }
+    }
+  })
+
+  it('covers every red day with a red stretch', () => {
+    for (const series of allSeries) {
+      series.points.forEach(({ abnormal }, day) => {
+        if (!abnormal) return
+        expect(series.runs.some(([a, b]) => day >= a && day <= b)).toBe(true)
+      })
+    }
+  })
+
+  it('calls every dashed line "Target"', () => {
+    for (const series of allSeries) {
+      if (series.reference) expect(series.reference.label).toMatch(/^Target /)
+    }
   })
 })

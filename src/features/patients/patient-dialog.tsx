@@ -18,6 +18,7 @@ import {
   sexLabel,
   type PatientListItem,
 } from './data'
+import { DeviceLogo } from './device-logo'
 import { Indicators } from './indicators'
 import { PatientAvatar } from './patient-avatar'
 import { TrendChart } from './trend-chart'
@@ -66,7 +67,7 @@ export function PatientDialog({
                 <TabsList className='h-auto w-full flex-wrap'>
                   {devices.map((device) => (
                     <TabsTrigger key={device.source} value={device.source}>
-                      {device.name}
+                      <DeviceLogo source={device.source} />
                       {device.hasAbnormal && (
                         <span
                           role='img'

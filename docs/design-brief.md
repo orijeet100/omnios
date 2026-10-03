@@ -57,7 +57,7 @@ medical constraints in `context.md`.
 8. **Color is never the only signal.** Anything flagged also carries an arrow,
    a label or a number. **Red** (`destructive`) means outside the normal range,
    and is used for arrows, values and the abnormal part of a chart line.
-   **Green** (`success`) means normal, and is used only for the "normal" arrow.
+   **Green** (`success`) means on target, and is used only for the "on target" dot.
    Nothing else is red or green.
 9. **Dark mode comes free.** Because of rule 1, no `dark:` overrides in
    screens.
@@ -84,42 +84,47 @@ medical constraints in `context.md`.
     clinician what to do, never names a drug, dose or treatment, and never says
     "diagnosis".
 16. **Show the basis in the chart, not in prose.** A measurement is charted
-    with its threshold as a dashed line ("Target 140") and its abnormal weeks in
-    red, so the reader sees why without a paragraph.
+    with the line that decides it, dashed, and the days past that line in red,
+    so the reader sees why without a paragraph. The word "target" is not used.
 17. **No dollars, no contract ranking.** No currency anywhere, no
     "contract measure" tags. Lists are in a neutral fixed order (patient id),
     never sorted by contract value or "easiest win".
 18. **Honest absence.** We never show a guess or a zero for missing data. A
-    measurement with too little data simply shows no arrow.
+    measurement with too little data simply shows no marker.
 19. **Plain language.** Short labels a care manager or a demo audience reads in
     a second ("BP above normal", "Early warning signs"). No jargon like
     "z-score" or "baseline delta".
 20. **Minimal text.** Titles, labels and numbers only. No explanation
     paragraphs, helper copy, or "of N" counts on cards, rows or in modals.
 
-### Cards, arrows and the modal
+### Cards, markers and the modal
 
 21. **Dashboard row.** Icon, category name, count, chevron. Nothing else.
 22. **Patient card.** A card with a photo (a stock portrait chosen by sex
-    and patient id; a person icon if it fails to load), name, `age · sex`, and arrows. No graphs on cards. The
+    and patient id; a person icon if it fails to load), name, `age · sex`, and markers. No graphs on cards. The
     photo is a single `PatientAvatar` component, so one change adds real
     photos everywhere.
-23. **Arrows.** One small arrow per measurement, with its label: up or down in
-    red when outside the normal range, right in green when normal. A
-    measurement counts once (BP is one arrow even if both numbers are off).
-    Out-of-range arrows come first.
+23. **Markers.** One small marker per measurement, with its label: a red arrow
+    (up or down) when it is past the target, a green dot when it is on target.
+    There are no sideways arrows. A measurement counts once (BP is one marker
+    even if both numbers are off). Past-target markers come first.
 24. **One patient modal for every page.** Header: photo, name, `age · sex`,
-    arrows. Body: one tab per device (Whoop, the BP cuff, the CGM, ...), a red
+    arrows. Body: one tab per device, shown as the brand's logo (Whoop, Omron, Dexcom, ...; black logos are inverted in dark mode), a red
     dot on any device with an out-of-range reading, opening on the first such
     device. Each tab charts that device's measurements, out-of-range ones
     first. Footer, centered: Dismiss (closes the modal) and Send to doctor
     (placeholder, does nothing yet).
 25. **One chart style.** The normal line is `--primary`, abnormal stretches are
-    `--destructive` and drawn on top, the threshold is a dashed
-    `--muted-foreground` line labelled outside the plot, grid lines are
-    `--border`, and hovering shows a tooltip with the date and value. A day is
-    abnormal when the weekly check says its week is `off`, so red always
-    matches the dashboard counts.
+    `--destructive` and drawn on top, the decision line is a
+    dashed `--muted-foreground` line labelled outside the plot, grid lines are
+    `--border`, and hovering shows a tooltip with the date and value. **A day
+    is red exactly when it is past the dashed line**, so colour and line can
+    never disagree. The line is always labelled "Target" with its value ("Target
+    140"); for heart rate, HRV, breathing and SpO2 the value is the patient's
+    own usual level plus the allowed change, for BP and glucose it is a fixed
+    value. Dashboard counts still come from
+    the weekly average (`src/contracts/checks.ts`), so a chart can show a few
+    red days in a week that is not counted.
 
 ## 3. Screens
 
@@ -145,3 +150,14 @@ We add them as we go, using the rules above.
   `context.md` section 6.4 (worklist status changes, never risk).
 - **Patient order.** Neutral order by patient id for now. A clinical-risk order
   needs the risk score, which is not built yet.
+
+## 5. Language
+
+Use these words the same way everywhere (UI, code, docs).
+
+| Word | Means |
+|---|---|
+| **Target** | The line a measurement is judged against. Past it is red, on it is green. For BP and glucose it is a fixed value; for heart rate, HRV, breathing and SpO2 it is the patient's own usual level plus the allowed change. Never "limit", "baseline", "threshold" or "normal range" in the UI. |
+| **Past target** | A measurement beyond its target in the bad direction (up or down). Shown as a red arrow. |
+| **On target** | A measurement within its target. Shown as a green dot. |
+| **Early warning signs** | Heart rate, HRV, breathing or SpO2 past target; an early sign before trouble. |
