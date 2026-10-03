@@ -6,7 +6,7 @@ import { SOURCES, type SourceId } from '@/contracts'
  * carries a tagline), so each gets the height that makes it look about the
  * same size as the others.
  */
-const LOGOS: Record<SourceId, { file: string; height: string }> = {
+const LOGOS: Record<SourceId, { file: string; ext?: 'jpg'; height: string }> = {
   apple_watch: { file: 'apple', height: 'h-6' },
   fitbit: { file: 'fitbit', height: 'h-4' },
   garmin: { file: 'garmin', height: 'h-4' },
@@ -16,6 +16,7 @@ const LOGOS: Record<SourceId, { file: string; height: string }> = {
   libre: { file: 'libre', height: 'h-10' },
   omron: { file: 'omron', height: 'h-3.5' },
   withings: { file: 'withings', height: 'h-3' },
+  visualize_ai: { file: 'visualize', ext: 'jpg', height: 'h-7' },
 }
 
 /**
@@ -24,10 +25,10 @@ const LOGOS: Record<SourceId, { file: string; height: string }> = {
  * disappears), invert + screen in dark mode (black disappears).
  */
 export function DeviceLogo({ source }: { source: SourceId }) {
-  const { file, height } = LOGOS[source]
+  const { file, ext = 'png', height } = LOGOS[source]
   return (
     <img
-      src={`/images/${file}.png`}
+      src={`/images/${file}.${ext}`}
       alt={SOURCES[source].name}
       className={`${height} w-auto max-w-24 object-contain mix-blend-multiply dark:mix-blend-screen dark:invert`}
     />
