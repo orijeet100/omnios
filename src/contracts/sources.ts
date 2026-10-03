@@ -27,7 +27,7 @@ export const dataSourceSchema = z.object({
 })
 export type DataSource = z.infer<typeof dataSourceSchema>
 
-const RECOVERY: Metric[] = [
+const RECOVERY_METRICS: Metric[] = [
   'resting_hr',
   'hrv_rmssd',
   'resp_rate',
@@ -54,7 +54,7 @@ export const SOURCES: Record<
     name: 'Apple Watch',
     category: 'wearable',
     provides: [
-      ...RECOVERY.filter((m) => m !== 'hrv_rmssd'),
+      ...RECOVERY_METRICS.filter((m) => m !== 'hrv_rmssd'),
       'hrv_sdnn',
       'steps',
       'active_minutes',
@@ -64,25 +64,25 @@ export const SOURCES: Record<
     vendor: 'Google',
     name: 'Fitbit',
     category: 'wearable',
-    provides: [...RECOVERY, 'steps', 'active_minutes', 'weight'],
+    provides: [...RECOVERY_METRICS, 'steps', 'active_minutes', 'weight'],
   },
   garmin: {
     vendor: 'Garmin',
     name: 'Garmin',
     category: 'wearable',
-    provides: [...RECOVERY, 'steps', 'active_minutes', 'weight'],
+    provides: [...RECOVERY_METRICS, 'steps', 'active_minutes', 'weight'],
   },
   oura: {
     vendor: 'Oura',
     name: 'Oura Ring',
     category: 'wearable',
-    provides: [...RECOVERY, 'steps', 'active_minutes'],
+    provides: [...RECOVERY_METRICS, 'steps', 'active_minutes'],
   },
   whoop: {
     vendor: 'Whoop',
     name: 'Whoop',
     category: 'wearable',
-    provides: RECOVERY,
+    provides: RECOVERY_METRICS,
   },
   dexcom: {
     vendor: 'Dexcom',
@@ -123,28 +123,33 @@ export const SOURCES: Record<
  * day, the first source in the list that has an `ok` value wins. All
  * candidates are still returned so the UI can show the conflict.
  */
-const SLEEP_AND_RECOVERY: SourceId[] = [
+const RECOVERY_SOURCE_ORDER: SourceId[] = [
   'oura',
   'whoop',
   'apple_watch',
   'garmin',
   'fitbit',
 ]
-const ACTIVITY: SourceId[] = ['apple_watch', 'garmin', 'fitbit', 'oura']
+const ACTIVITY_SOURCE_ORDER: SourceId[] = [
+  'apple_watch',
+  'garmin',
+  'fitbit',
+  'oura',
+]
 
 export const RESOLUTION_PRECEDENCE: Record<Metric, SourceId[]> = {
-  resting_hr: SLEEP_AND_RECOVERY,
-  hrv_rmssd: SLEEP_AND_RECOVERY,
-  hrv_sdnn: SLEEP_AND_RECOVERY,
-  resp_rate: SLEEP_AND_RECOVERY,
-  spo2_avg: SLEEP_AND_RECOVERY,
-  spo2_min: SLEEP_AND_RECOVERY,
-  skin_temp_dev: SLEEP_AND_RECOVERY,
-  sleep_duration: SLEEP_AND_RECOVERY,
-  sleep_efficiency: SLEEP_AND_RECOVERY,
-  wear_time: SLEEP_AND_RECOVERY,
-  steps: ACTIVITY,
-  active_minutes: ACTIVITY,
+  resting_hr: RECOVERY_SOURCE_ORDER,
+  hrv_rmssd: RECOVERY_SOURCE_ORDER,
+  hrv_sdnn: RECOVERY_SOURCE_ORDER,
+  resp_rate: RECOVERY_SOURCE_ORDER,
+  spo2_avg: RECOVERY_SOURCE_ORDER,
+  spo2_min: RECOVERY_SOURCE_ORDER,
+  skin_temp_dev: RECOVERY_SOURCE_ORDER,
+  sleep_duration: RECOVERY_SOURCE_ORDER,
+  sleep_efficiency: RECOVERY_SOURCE_ORDER,
+  wear_time: RECOVERY_SOURCE_ORDER,
+  steps: ACTIVITY_SOURCE_ORDER,
+  active_minutes: ACTIVITY_SOURCE_ORDER,
   bp_systolic: ['omron', 'withings'],
   bp_diastolic: ['omron', 'withings'],
   glucose_mean: ['dexcom', 'libre'],
