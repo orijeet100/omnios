@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getApiAdapter } from '@/api'
-import { Loader2, Send, X } from 'lucide-react'
+import { Check, Loader2, Send, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useIsSent } from '@/hooks/use-notifications'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -145,8 +146,10 @@ export function PatientDialog({
   if (patient && patient !== lastShown) setLastShown(patient)
   const shown = patient ?? lastShown
 
+  const alreadySent = useIsSent(shown?.id)
+
   const handleSendToDoctor = () => {
-    if (!shown) return
+    if (!shown || alreadySent) return
     getApiAdapter().routePatient(shown.id, 'cm-001')
     toast.success(`Sent ${shown.name} to the physician.`)
     queryClient.invalidateQueries({ queryKey: ['worklist'] })
@@ -192,9 +195,13 @@ export function PatientDialog({
                   <X className='mr-1 h-4 w-4' />
                   Dismiss
                 </Button>
-                <Button onClick={handleSendToDoctor}>
-                  <Send className='mr-2 h-4 w-4' />
-                  Send to doctor
+                <Button onClick={handleSendToDoctor} disabled={alreadySent}>
+                  {alreadySent ? (
+                    <Check className='mr-2 h-4 w-4' />
+                  ) : (
+                    <Send className='mr-2 h-4 w-4' />
+                  )}
+                  {alreadySent ? 'Sent to doctor' : 'Send to doctor'}
                 </Button>
               </div>
             </div>
