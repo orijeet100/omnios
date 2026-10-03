@@ -1,4 +1,4 @@
-import { METRICS, type Metric, type MetricDeviation } from '@/contracts'
+import { METRICS, type MetricDeviation } from '@/contracts'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import {
   Table,
@@ -8,26 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { formatValue, offMetrics } from './data'
-
-const MAX_ROWS = 6
-const MIN_CHANGE_PCT = 10
-
-/**
- * The flagged measurements first, then the biggest other moves; small wobbles
- * are left out.
- */
-function notableChanges(deviations: MetricDeviation[], flagged: Metric[]) {
-  const isFlagged = (d: MetricDeviation) => flagged.includes(d.metric)
-  return deviations
-    .filter((d) => isFlagged(d) || Math.abs(d.delta_pct) >= MIN_CHANGE_PCT)
-    .sort(
-      (a, b) =>
-        Number(isFlagged(b)) - Number(isFlagged(a)) ||
-        Math.abs(b.delta_pct) - Math.abs(a.delta_pct)
-    )
-    .slice(0, MAX_ROWS)
-}
+import { formatValue, notableChanges } from './data'
 
 /** What moved: the usual level (before) against the last few days (after). */
 export function ChangesTable({
@@ -42,7 +23,7 @@ export function ChangesTable({
   emptyText?: string
   className?: string
 }) {
-  const rows = notableChanges(deviations, offMetrics(patientId))
+  const rows = notableChanges(patientId, deviations)
   if (rows.length === 0) {
     return emptyText ? (
       <p className='text-sm text-muted-foreground'>{emptyText}</p>

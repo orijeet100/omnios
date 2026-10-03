@@ -61,7 +61,7 @@ function EhrInbox() {
                 notifications.map((n) => {
                   const chart = adapter.getEhrChart(n.patient_id)
                   const open = () =>
-                    navigate({ to: `/ehr/patient/${n.patient_id}` })
+                    navigate({ to: `/ehr/prescriptions/${n.patient_id}` })
                   return (
                     <TableRow
                       key={n.id}

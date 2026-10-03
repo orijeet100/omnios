@@ -6,6 +6,7 @@ import {
   type BodyScan,
   type ConditionCode,
   type Metric,
+  type MetricDeviation,
   type SegmentId,
   type SourceId,
   type WeeklyFlag,
@@ -266,9 +267,44 @@ export function indicatorsFor(
   )
 }
 
-/** Short names of the measurements outside their normal range this week. */
+const MAX_CHANGES = 6
+const MIN_CHANGE_PCT = 10
+
+/**
+ * What moved against the patient's own baseline: the flagged measurements
+ * first, then the biggest other moves. Small wobbles are left out.
+ */
+export function notableChanges(
+  patientId: string,
+  deviations: MetricDeviation[]
+): MetricDeviation[] {
+  const flagged = offMetrics(patientId)
+  const isFlagged = (d: MetricDeviation) => flagged.includes(d.metric)
+  return deviations
+    .filter((d) => isFlagged(d) || Math.abs(d.delta_pct) >= MIN_CHANGE_PCT)
+    .sort(
+      (a, b) =>
+        Number(isFlagged(b)) - Number(isFlagged(a)) ||
+        Math.abs(b.delta_pct) - Math.abs(a.delta_pct)
+    )
+    .slice(0, MAX_CHANGES)
+}
+
+/** Spelled-out names for measurements the cards abbreviate (BP, HRV, SpO2). */
+const FULL_LABELS: Partial<Record<Metric, string>> = {
+  bp_systolic: 'Blood pressure',
+  bp_diastolic: 'Blood pressure',
+  hrv_rmssd: 'Heart rate variability',
+  hrv_sdnn: 'Heart rate variability',
+  spo2_avg: 'Blood oxygen',
+}
+
+/** Full names of the measurements outside their normal range this week. */
 export function outOfRangeLabels(patientId: string): string[] {
-  return indicatorsFor(patientId, offMetrics(patientId)).map((i) => i.label)
+  const names = offMetrics(patientId).map(
+    (metric) => FULL_LABELS[metric] ?? shortLabel(metric)
+  )
+  return [...new Set(names)]
 }
 
 /** Every measurement we have for the patient, as arrows. */
