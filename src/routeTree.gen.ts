@@ -12,15 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppPatientsRouteImport } from './routes/_app/patients'
+import { Route as AppAuditIndexRouteImport } from './routes/_app/audit/index'
+import { Route as AppDemoIndexRouteImport } from './routes/_app/demo/index'
+import { Route as AppEhrIndexRouteImport } from './routes/_app/ehr/index'
 import { Route as AppSegmentsSegmentIdRouteImport } from './routes/_app/segments/$segmentId'
-import { Route as AuthenticatedAuditIndexRouteImport } from './routes/_authenticated/audit/index'
-import { Route as AuthenticatedEhrIndexRouteImport } from './routes/_authenticated/ehr/index'
-import { Route as AuthenticatedHandoffPatientIdRouteImport } from './routes/_authenticated/handoff/$patientId'
-import { Route as AuthenticatedPatientsPatientIdRouteImport } from './routes/_authenticated/patients/$patientId'
-import { Route as AuthenticatedPopulationIndexRouteImport } from './routes/_authenticated/population/index'
-import { Route as AuthenticatedPopulationSegmentIdRouteImport } from './routes/_authenticated/population/$segmentId'
-import { Route as AuthenticatedWorklistIndexRouteImport } from './routes/_authenticated/worklist/index'
-import { Route as AuthenticatedEhrPrescriptionsPatientIdRouteImport } from './routes/_authenticated/ehr/prescriptions/$patientId'
+import { Route as AppEhrPrescriptionsPatientIdRouteImport } from './routes/_app/ehr/prescriptions/$patientId'
 
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
@@ -36,83 +32,50 @@ const AppPatientsRoute = AppPatientsRouteImport.update({
   path: '/patients',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppAuditIndexRoute = AppAuditIndexRouteImport.update({
+  id: '/audit/',
+  path: '/audit/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDemoIndexRoute = AppDemoIndexRouteImport.update({
+  id: '/demo/',
+  path: '/demo/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppEhrIndexRoute = AppEhrIndexRouteImport.update({
+  id: '/ehr/',
+  path: '/ehr/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppSegmentsSegmentIdRoute = AppSegmentsSegmentIdRouteImport.update({
   id: '/segments/$segmentId',
   path: '/segments/$segmentId',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedAuditIndexRoute = AuthenticatedAuditIndexRouteImport.update({
-  id: '/_authenticated/audit/',
-  path: '/audit/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedEhrIndexRoute = AuthenticatedEhrIndexRouteImport.update({
-  id: '/_authenticated/ehr/',
-  path: '/ehr/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedHandoffPatientIdRoute =
-  AuthenticatedHandoffPatientIdRouteImport.update({
-    id: '/_authenticated/handoff/$patientId',
-    path: '/handoff/$patientId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedPatientsPatientIdRoute =
-  AuthenticatedPatientsPatientIdRouteImport.update({
-    id: '/_authenticated/patients/$patientId',
-    path: '/patients/$patientId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedPopulationIndexRoute =
-  AuthenticatedPopulationIndexRouteImport.update({
-    id: '/_authenticated/population/',
-    path: '/population/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedPopulationSegmentIdRoute =
-  AuthenticatedPopulationSegmentIdRouteImport.update({
-    id: '/_authenticated/population/$segmentId',
-    path: '/population/$segmentId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedWorklistIndexRoute =
-  AuthenticatedWorklistIndexRouteImport.update({
-    id: '/_authenticated/worklist/',
-    path: '/worklist/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedEhrPrescriptionsPatientIdRoute =
-  AuthenticatedEhrPrescriptionsPatientIdRouteImport.update({
-    id: '/_authenticated/ehr/prescriptions/$patientId',
+const AppEhrPrescriptionsPatientIdRoute =
+  AppEhrPrescriptionsPatientIdRouteImport.update({
+    id: '/ehr/prescriptions/$patientId',
     path: '/ehr/prescriptions/$patientId',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AppRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/patients': typeof AppPatientsRoute
   '/segments/$segmentId': typeof AppSegmentsSegmentIdRoute
-  '/handoff/$patientId': typeof AuthenticatedHandoffPatientIdRoute
-  '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
-  '/population/$segmentId': typeof AuthenticatedPopulationSegmentIdRoute
-  '/audit/': typeof AuthenticatedAuditIndexRoute
-  '/ehr/': typeof AuthenticatedEhrIndexRoute
-  '/population/': typeof AuthenticatedPopulationIndexRoute
-  '/worklist/': typeof AuthenticatedWorklistIndexRoute
-  '/ehr/prescriptions/$patientId': typeof AuthenticatedEhrPrescriptionsPatientIdRoute
+  '/audit/': typeof AppAuditIndexRoute
+  '/demo/': typeof AppDemoIndexRoute
+  '/ehr/': typeof AppEhrIndexRoute
+  '/ehr/prescriptions/$patientId': typeof AppEhrPrescriptionsPatientIdRoute
 }
 export interface FileRoutesByTo {
   '/patients': typeof AppPatientsRoute
   '/': typeof AppIndexRoute
   '/segments/$segmentId': typeof AppSegmentsSegmentIdRoute
-  '/handoff/$patientId': typeof AuthenticatedHandoffPatientIdRoute
-  '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
-  '/population/$segmentId': typeof AuthenticatedPopulationSegmentIdRoute
-  '/audit': typeof AuthenticatedAuditIndexRoute
-  '/ehr': typeof AuthenticatedEhrIndexRoute
-  '/population': typeof AuthenticatedPopulationIndexRoute
-  '/worklist': typeof AuthenticatedWorklistIndexRoute
-  '/ehr/prescriptions/$patientId': typeof AuthenticatedEhrPrescriptionsPatientIdRoute
+  '/audit': typeof AppAuditIndexRoute
+  '/demo': typeof AppDemoIndexRoute
+  '/ehr': typeof AppEhrIndexRoute
+  '/ehr/prescriptions/$patientId': typeof AppEhrPrescriptionsPatientIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -120,14 +83,10 @@ export interface FileRoutesById {
   '/_app/patients': typeof AppPatientsRoute
   '/_app/': typeof AppIndexRoute
   '/_app/segments/$segmentId': typeof AppSegmentsSegmentIdRoute
-  '/_authenticated/handoff/$patientId': typeof AuthenticatedHandoffPatientIdRoute
-  '/_authenticated/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
-  '/_authenticated/population/$segmentId': typeof AuthenticatedPopulationSegmentIdRoute
-  '/_authenticated/audit/': typeof AuthenticatedAuditIndexRoute
-  '/_authenticated/ehr/': typeof AuthenticatedEhrIndexRoute
-  '/_authenticated/population/': typeof AuthenticatedPopulationIndexRoute
-  '/_authenticated/worklist/': typeof AuthenticatedWorklistIndexRoute
-  '/_authenticated/ehr/prescriptions/$patientId': typeof AuthenticatedEhrPrescriptionsPatientIdRoute
+  '/_app/audit/': typeof AppAuditIndexRoute
+  '/_app/demo/': typeof AppDemoIndexRoute
+  '/_app/ehr/': typeof AppEhrIndexRoute
+  '/_app/ehr/prescriptions/$patientId': typeof AppEhrPrescriptionsPatientIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -135,26 +94,18 @@ export interface FileRouteTypes {
     | '/'
     | '/patients'
     | '/segments/$segmentId'
-    | '/handoff/$patientId'
-    | '/patients/$patientId'
-    | '/population/$segmentId'
     | '/audit/'
+    | '/demo/'
     | '/ehr/'
-    | '/population/'
-    | '/worklist/'
     | '/ehr/prescriptions/$patientId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/patients'
     | '/'
     | '/segments/$segmentId'
-    | '/handoff/$patientId'
-    | '/patients/$patientId'
-    | '/population/$segmentId'
     | '/audit'
+    | '/demo'
     | '/ehr'
-    | '/population'
-    | '/worklist'
     | '/ehr/prescriptions/$patientId'
   id:
     | '__root__'
@@ -162,26 +113,14 @@ export interface FileRouteTypes {
     | '/_app/patients'
     | '/_app/'
     | '/_app/segments/$segmentId'
-    | '/_authenticated/handoff/$patientId'
-    | '/_authenticated/patients/$patientId'
-    | '/_authenticated/population/$segmentId'
-    | '/_authenticated/audit/'
-    | '/_authenticated/ehr/'
-    | '/_authenticated/population/'
-    | '/_authenticated/worklist/'
-    | '/_authenticated/ehr/prescriptions/$patientId'
+    | '/_app/audit/'
+    | '/_app/demo/'
+    | '/_app/ehr/'
+    | '/_app/ehr/prescriptions/$patientId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
-  AuthenticatedHandoffPatientIdRoute: typeof AuthenticatedHandoffPatientIdRoute
-  AuthenticatedPatientsPatientIdRoute: typeof AuthenticatedPatientsPatientIdRoute
-  AuthenticatedPopulationSegmentIdRoute: typeof AuthenticatedPopulationSegmentIdRoute
-  AuthenticatedAuditIndexRoute: typeof AuthenticatedAuditIndexRoute
-  AuthenticatedEhrIndexRoute: typeof AuthenticatedEhrIndexRoute
-  AuthenticatedPopulationIndexRoute: typeof AuthenticatedPopulationIndexRoute
-  AuthenticatedWorklistIndexRoute: typeof AuthenticatedWorklistIndexRoute
-  AuthenticatedEhrPrescriptionsPatientIdRoute: typeof AuthenticatedEhrPrescriptionsPatientIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -207,6 +146,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPatientsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/audit/': {
+      id: '/_app/audit/'
+      path: '/audit'
+      fullPath: '/audit/'
+      preLoaderRoute: typeof AppAuditIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/demo/': {
+      id: '/_app/demo/'
+      path: '/demo'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof AppDemoIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/ehr/': {
+      id: '/_app/ehr/'
+      path: '/ehr'
+      fullPath: '/ehr/'
+      preLoaderRoute: typeof AppEhrIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/segments/$segmentId': {
       id: '/_app/segments/$segmentId'
       path: '/segments/$segmentId'
@@ -214,61 +174,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSegmentsSegmentIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/audit/': {
-      id: '/_authenticated/audit/'
-      path: '/audit'
-      fullPath: '/audit/'
-      preLoaderRoute: typeof AuthenticatedAuditIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/ehr/': {
-      id: '/_authenticated/ehr/'
-      path: '/ehr'
-      fullPath: '/ehr/'
-      preLoaderRoute: typeof AuthenticatedEhrIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/handoff/$patientId': {
-      id: '/_authenticated/handoff/$patientId'
-      path: '/handoff/$patientId'
-      fullPath: '/handoff/$patientId'
-      preLoaderRoute: typeof AuthenticatedHandoffPatientIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/patients/$patientId': {
-      id: '/_authenticated/patients/$patientId'
-      path: '/patients/$patientId'
-      fullPath: '/patients/$patientId'
-      preLoaderRoute: typeof AuthenticatedPatientsPatientIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/population/': {
-      id: '/_authenticated/population/'
-      path: '/population'
-      fullPath: '/population/'
-      preLoaderRoute: typeof AuthenticatedPopulationIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/population/$segmentId': {
-      id: '/_authenticated/population/$segmentId'
-      path: '/population/$segmentId'
-      fullPath: '/population/$segmentId'
-      preLoaderRoute: typeof AuthenticatedPopulationSegmentIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/worklist/': {
-      id: '/_authenticated/worklist/'
-      path: '/worklist'
-      fullPath: '/worklist/'
-      preLoaderRoute: typeof AuthenticatedWorklistIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/ehr/prescriptions/$patientId': {
-      id: '/_authenticated/ehr/prescriptions/$patientId'
+    '/_app/ehr/prescriptions/$patientId': {
+      id: '/_app/ehr/prescriptions/$patientId'
       path: '/ehr/prescriptions/$patientId'
       fullPath: '/ehr/prescriptions/$patientId'
-      preLoaderRoute: typeof AuthenticatedEhrPrescriptionsPatientIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppEhrPrescriptionsPatientIdRouteImport
+      parentRoute: typeof AppRouteRoute
     }
   }
 }
@@ -277,12 +188,20 @@ interface AppRouteRouteChildren {
   AppPatientsRoute: typeof AppPatientsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppSegmentsSegmentIdRoute: typeof AppSegmentsSegmentIdRoute
+  AppAuditIndexRoute: typeof AppAuditIndexRoute
+  AppDemoIndexRoute: typeof AppDemoIndexRoute
+  AppEhrIndexRoute: typeof AppEhrIndexRoute
+  AppEhrPrescriptionsPatientIdRoute: typeof AppEhrPrescriptionsPatientIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppPatientsRoute: AppPatientsRoute,
   AppIndexRoute: AppIndexRoute,
   AppSegmentsSegmentIdRoute: AppSegmentsSegmentIdRoute,
+  AppAuditIndexRoute: AppAuditIndexRoute,
+  AppDemoIndexRoute: AppDemoIndexRoute,
+  AppEhrIndexRoute: AppEhrIndexRoute,
+  AppEhrPrescriptionsPatientIdRoute: AppEhrPrescriptionsPatientIdRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
@@ -291,15 +210,6 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
-  AuthenticatedHandoffPatientIdRoute: AuthenticatedHandoffPatientIdRoute,
-  AuthenticatedPatientsPatientIdRoute: AuthenticatedPatientsPatientIdRoute,
-  AuthenticatedPopulationSegmentIdRoute: AuthenticatedPopulationSegmentIdRoute,
-  AuthenticatedAuditIndexRoute: AuthenticatedAuditIndexRoute,
-  AuthenticatedEhrIndexRoute: AuthenticatedEhrIndexRoute,
-  AuthenticatedPopulationIndexRoute: AuthenticatedPopulationIndexRoute,
-  AuthenticatedWorklistIndexRoute: AuthenticatedWorklistIndexRoute,
-  AuthenticatedEhrPrescriptionsPatientIdRoute:
-    AuthenticatedEhrPrescriptionsPatientIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,13 +1,14 @@
-import type {
-  DataConfidence,
-  InsightFeatures,
-  InsightNote,
-  InsightText,
-  MetricDeviation,
-  RiskAssessment,
-  SourceId,
+import {
+  METRICS,
+  SOURCES,
+  type DataConfidence,
+  type InsightFeatures,
+  type InsightNote,
+  type InsightText,
+  type MetricDeviation,
+  type RiskAssessment,
+  type SourceId,
 } from '../contracts'
-import { METRICS, SOURCES } from '../contracts'
 
 export function generateInsightFeatures(
   patientId: string,

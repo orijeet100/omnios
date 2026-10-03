@@ -85,6 +85,7 @@ describe('chart colouring', () => {
     .slice(0, 40)
     .flatMap((p) => getDeviceGroups(p.id))
     .flatMap((g) => g.series)
+    .filter((s) => CHECKS[s.metric])
 
   it('marks a day red exactly when it is past the dashed line', () => {
     for (const series of allSeries) {

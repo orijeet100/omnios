@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { getAllPatients, matchesQuery } from './data'
 import { PatientDialog } from './patient-dialog'
@@ -21,7 +20,6 @@ export function AllPatients() {
 
   return (
     <>
-      <AppHeader />
       <Main className='space-y-6'>
         <div className='flex flex-wrap items-end justify-between gap-4'>
           <div className='space-y-1'>

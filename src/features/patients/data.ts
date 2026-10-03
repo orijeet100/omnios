@@ -275,21 +275,57 @@ export function allIndicators(patientId: string): Indicator[] {
   )
 }
 
-/** The patient's devices, each with charts for its checked measurements. */
+const BODY_COMPOSITION_METRICS: Metric[] = [
+  'body_fat_pct',
+  'muscle_mass_kg',
+  'bone_mass_kg',
+  'waist_circumference_cm',
+]
+
 export function getDeviceGroups(patientId: string): DeviceGroup[] {
   const profile = getDataset().profiles.find((p) => p.id === patientId)
   if (!profile) return []
   const values = getDeviceValues()
+  const resolved = getDataset().resolved
+  const connections = getDataset().connections
+
+  const hasVisualize = connections.some(
+    (c) => c.patient_id === patientId && c.source_id === 'visualize_ai'
+  )
   const sources = [...new Set(profile.devices.map((d) => d.source))]
+  if (hasVisualize && !sources.includes('visualize_ai')) {
+    sources.push('visualize_ai')
+  }
+
+  const dailyResolved = new Map<string, (number | null)[]>()
+  for (const point of resolved) {
+    if (point.patient_id !== patientId) continue
+    const key = `${point.patient_id}|${point.metric}`
+    let days = dailyResolved.get(key)
+    if (!days) {
+      days = new Array<number | null>(N_DAYS).fill(null)
+      dailyResolved.set(key, days)
+    }
+    days[dayIndex(point.date)] = point.value
+  }
 
   return sources.map((source) => {
-    const series = SOURCES[source].provides
-      .filter((metric) => CHECKS[metric])
+    const isVisualize = source === 'visualize_ai'
+    const metrics = isVisualize
+      ? BODY_COMPOSITION_METRICS
+      : SOURCES[source].provides.filter((metric) => CHECKS[metric])
+
+    const series = metrics
       .flatMap((metric) => {
+        if (isVisualize) {
+          const daily = dailyResolved.get(`${patientId}|${metric}`)
+          return daily ? buildSeries(patientId, metric, daily) : []
+        }
         const daily = values.get(`${patientId}|${source}|${metric}`)
         return daily ? buildSeries(patientId, metric, daily) : []
       })
       .sort((a, b) => Number(b.abnormalNow) - Number(a.abnormalNow))
+
     return {
       source,
       name: SOURCES[source].name,

@@ -11,28 +11,28 @@ import {
   generateInsightNote,
   generateInsightText,
 } from '../analysis'
-import type {
-  AuditEvent,
-  ClinicianAction,
-  InsightNote,
-  Notification,
-  Observation,
-  PatientChart,
-  PatientSummary,
-  ResolvedMetric,
-  SourceConnection,
-  SourceId,
-  SyncRun,
-  WorklistStatus,
+import {
+  SOURCES,
+  type AuditEvent,
+  type ClinicianAction,
+  type InsightNote,
+  type Notification,
+  type Observation,
+  type PatientChart,
+  type PatientSummary,
+  type ResolvedMetric,
+  type SourceConnection,
+  type SourceId,
+  type SyncRun,
+  type WorklistStatus,
 } from '../contracts'
-import { SOURCES } from '../contracts'
 import {
   getDataset,
   computeSegments,
   generateObservations,
   resolve,
+  type Dataset,
 } from '../mock'
-import type { Dataset } from '../mock'
 
 const SNOOZE_DAYS = 14
 
@@ -363,6 +363,9 @@ export class MockApiAdapter {
 
     if (!risk || !insight) return null
 
+    const profile = this.dataset.profiles.find((p) => p.id === patientId)
+    const patientName = profile?.name ?? patientId
+
     const edited = this.editedNotes.get(patientId)
     const finalInsight = edited
       ? { ...insight, suggestion: edited.suggestion }
@@ -383,6 +386,8 @@ export class MockApiAdapter {
       insight_note_id: finalInsight.id,
       created_at: now.toISOString(),
       status: 'unread',
+      priority: risk.score > 75 ? 'high' : risk.score > 50 ? 'medium' : 'low',
+      message: `${patientName} trending outside normal parameters. ${finalInsight.what_changed}`,
       plan_notes: [],
     }
     this.notifications.push(notification)
@@ -412,10 +417,23 @@ export class MockApiAdapter {
     return this.notifications
   }
 
+  actOnNotificationByPatient(
+    patientId: string,
+    action: ClinicianAction,
+    actorId: string = 'clinician',
+    text?: string
+  ) {
+    const notification = this.notifications.find(
+      (n) => n.patient_id === patientId
+    )
+    if (!notification) return null
+    return this.actOnNotification(notification.id, action, actorId, text)
+  }
+
   actOnNotification(
     notificationId: string,
     action: ClinicianAction,
-    actorId: string,
+    actorId: string = 'clinician',
     text?: string
   ) {
     const notification = this.notifications.find((n) => n.id === notificationId)
@@ -508,6 +526,31 @@ export class MockApiAdapter {
     current.setDate(current.getDate() + days)
     this.asOf = current.toISOString().slice(0, 10)
     return { now: current.toISOString() }
+  }
+
+  runSync() {
+    const now = new Date().toISOString()
+    const runs = this.dataset.connections.map((conn) => ({
+      id: `sync-${conn.id}-demo`,
+      connection_id: conn.id,
+      started_at: now,
+      finished_at: now,
+      status: 'success' as const,
+      window_start: this.asOf,
+      window_end: this.asOf,
+      records_received: 5,
+      records_rejected: 0,
+      error: null,
+    }))
+    this.syncRuns.push(...runs)
+    this.addAuditEvent({
+      actor_role: 'system',
+      actor_id: 'demo',
+      patient_id: null,
+      action: 'sync_completed',
+      detail: `Sync run completed for ${runs.length} connections`,
+    })
+    return runs
   }
 
   private addAuditEvent(event: Omit<AuditEvent, 'event_id' | 'timestamp'>) {

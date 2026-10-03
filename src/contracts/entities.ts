@@ -411,6 +411,8 @@ export const notificationSchema = z.object({
   insight_note_id: z.string(),
   created_at: timestamp,
   status: z.enum(['unread', 'acknowledged', 'dismissed']),
+  priority: z.enum(['high', 'medium', 'low']).optional(),
+  message: z.string().optional(),
   plan_notes: z.array(
     z.object({
       id: z.string(),
