@@ -11,10 +11,11 @@ export const sourceIdSchema = z.enum([
   'libre',
   'omron',
   'withings',
+  'visualize_ai',
 ])
 export type SourceId = z.infer<typeof sourceIdSchema>
 
-export const sourceCategorySchema = z.enum(['wearable', 'cgm', 'bp_cuff'])
+export const sourceCategorySchema = z.enum(['wearable', 'cgm', 'bp_cuff', 'body_composition'])
 
 /** Catalog entry: a kind of device/vendor the platform can ingest. */
 export const dataSourceSchema = z.object({
@@ -116,6 +117,17 @@ export const SOURCES: Record<
     category: 'bp_cuff',
     provides: ['bp_systolic', 'bp_diastolic', 'weight'],
   },
+  visualize_ai: {
+    vendor: 'Visualize AI',
+    name: 'Visualize AI body scan',
+    category: 'body_composition',
+    provides: [
+      'body_fat_pct',
+      'muscle_mass_kg',
+      'bone_mass_kg',
+      'waist_circumference_cm',
+    ],
+  },
 }
 
 /**
@@ -156,4 +168,8 @@ export const RESOLUTION_PRECEDENCE: Record<Metric, SourceId[]> = {
   glucose_time_in_range: ['dexcom', 'libre'],
   glucose_overnight_lows: ['dexcom', 'libre'],
   weight: ['withings', 'garmin', 'fitbit'],
+  body_fat_pct: ['visualize_ai'],
+  muscle_mass_kg: ['visualize_ai'],
+  bone_mass_kg: ['visualize_ai'],
+  waist_circumference_cm: ['visualize_ai'],
 }

@@ -12,6 +12,11 @@ import { generateObservations } from './generate'
 import { resolve } from './resolve'
 import type { Archetype, PatientProfile, Story } from './types'
 import { computeWeeklyFlags } from './weekly'
+import {
+  generateVisualizeWebhook,
+  visualizeToObservations,
+  getVisualizePatientIds,
+} from '../integrations/visualize'
 
 export const DEFAULT_SEED = 20260927
 
@@ -75,16 +80,42 @@ function buildConnections(
 export function buildDataset(seed = DEFAULT_SEED): Dataset {
   const profiles = buildCohort(seed)
   const observations = profiles.flatMap((p) => generateObservations(p, seed))
-  const resolved = resolve(observations)
+
+  const visualizeIds = getVisualizePatientIds()
+  const visualizeObs: Observation[] = []
+  for (const profile of profiles) {
+    if (!visualizeIds.includes(profile.id)) continue
+    const webhook = generateVisualizeWebhook(profile, seed)
+    const scanDate = DATA_END
+    visualizeObs.push(...visualizeToObservations(webhook, scanDate))
+  }
+
+  const allObservations = [...observations, ...visualizeObs]
+  const resolved = resolve(allObservations)
+
+  const visualizeConnections: SourceConnection[] = profiles
+    .filter((p) => visualizeIds.includes(p.id))
+    .map((p) => ({
+      id: `${p.id}-visualize_ai`,
+      patient_id: p.id,
+      source_id: 'visualize_ai' as const,
+      status: 'connected' as const,
+      last_sync_at: `${DATA_END}T06:00:00Z`,
+      last_data_date: DATA_END,
+    }))
+
   return {
     seed,
     window: { start: DATA_START, end: DATA_END },
     profiles,
     charts: profiles.map((p) => buildChart(p, seed)),
-    observations,
+    observations: allObservations,
     resolved,
     weeklyFlags: computeWeeklyFlags(profiles, resolved),
-    connections: buildConnections(profiles, observations),
+    connections: [
+      ...buildConnections(profiles, allObservations),
+      ...visualizeConnections,
+    ],
     groundTruth: profiles.map((p) => ({
       patient_id: p.id,
       archetype: p.archetype,
