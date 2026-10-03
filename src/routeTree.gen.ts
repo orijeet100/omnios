@@ -16,7 +16,6 @@ import { Route as AppAuditIndexRouteImport } from './routes/_app/audit/index'
 import { Route as AppDemoIndexRouteImport } from './routes/_app/demo/index'
 import { Route as AppEhrIndexRouteImport } from './routes/_app/ehr/index'
 import { Route as AppSegmentsSegmentIdRouteImport } from './routes/_app/segments/$segmentId'
-import { Route as AppEhrPatientPatientIdRouteImport } from './routes/_app/ehr/patient/$patientId'
 import { Route as AppEhrPrescriptionsPatientIdRouteImport } from './routes/_app/ehr/prescriptions/$patientId'
 
 const AppRouteRoute = AppRouteRouteImport.update({
@@ -53,11 +52,6 @@ const AppSegmentsSegmentIdRoute = AppSegmentsSegmentIdRouteImport.update({
   path: '/segments/$segmentId',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppEhrPatientPatientIdRoute = AppEhrPatientPatientIdRouteImport.update({
-  id: '/ehr/patient/$patientId',
-  path: '/ehr/patient/$patientId',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppEhrPrescriptionsPatientIdRoute =
   AppEhrPrescriptionsPatientIdRouteImport.update({
     id: '/ehr/prescriptions/$patientId',
@@ -72,7 +66,6 @@ export interface FileRoutesByFullPath {
   '/audit/': typeof AppAuditIndexRoute
   '/demo/': typeof AppDemoIndexRoute
   '/ehr/': typeof AppEhrIndexRoute
-  '/ehr/patient/$patientId': typeof AppEhrPatientPatientIdRoute
   '/ehr/prescriptions/$patientId': typeof AppEhrPrescriptionsPatientIdRoute
 }
 export interface FileRoutesByTo {
@@ -82,7 +75,6 @@ export interface FileRoutesByTo {
   '/audit': typeof AppAuditIndexRoute
   '/demo': typeof AppDemoIndexRoute
   '/ehr': typeof AppEhrIndexRoute
-  '/ehr/patient/$patientId': typeof AppEhrPatientPatientIdRoute
   '/ehr/prescriptions/$patientId': typeof AppEhrPrescriptionsPatientIdRoute
 }
 export interface FileRoutesById {
@@ -94,7 +86,6 @@ export interface FileRoutesById {
   '/_app/audit/': typeof AppAuditIndexRoute
   '/_app/demo/': typeof AppDemoIndexRoute
   '/_app/ehr/': typeof AppEhrIndexRoute
-  '/_app/ehr/patient/$patientId': typeof AppEhrPatientPatientIdRoute
   '/_app/ehr/prescriptions/$patientId': typeof AppEhrPrescriptionsPatientIdRoute
 }
 export interface FileRouteTypes {
@@ -106,7 +97,6 @@ export interface FileRouteTypes {
     | '/audit/'
     | '/demo/'
     | '/ehr/'
-    | '/ehr/patient/$patientId'
     | '/ehr/prescriptions/$patientId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,7 +106,6 @@ export interface FileRouteTypes {
     | '/audit'
     | '/demo'
     | '/ehr'
-    | '/ehr/patient/$patientId'
     | '/ehr/prescriptions/$patientId'
   id:
     | '__root__'
@@ -127,7 +116,6 @@ export interface FileRouteTypes {
     | '/_app/audit/'
     | '/_app/demo/'
     | '/_app/ehr/'
-    | '/_app/ehr/patient/$patientId'
     | '/_app/ehr/prescriptions/$patientId'
   fileRoutesById: FileRoutesById
 }
@@ -186,13 +174,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSegmentsSegmentIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/ehr/patient/$patientId': {
-      id: '/_app/ehr/patient/$patientId'
-      path: '/ehr/patient/$patientId'
-      fullPath: '/ehr/patient/$patientId'
-      preLoaderRoute: typeof AppEhrPatientPatientIdRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/ehr/prescriptions/$patientId': {
       id: '/_app/ehr/prescriptions/$patientId'
       path: '/ehr/prescriptions/$patientId'
@@ -210,7 +191,6 @@ interface AppRouteRouteChildren {
   AppAuditIndexRoute: typeof AppAuditIndexRoute
   AppDemoIndexRoute: typeof AppDemoIndexRoute
   AppEhrIndexRoute: typeof AppEhrIndexRoute
-  AppEhrPatientPatientIdRoute: typeof AppEhrPatientPatientIdRoute
   AppEhrPrescriptionsPatientIdRoute: typeof AppEhrPrescriptionsPatientIdRoute
 }
 
@@ -221,7 +201,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppAuditIndexRoute: AppAuditIndexRoute,
   AppDemoIndexRoute: AppDemoIndexRoute,
   AppEhrIndexRoute: AppEhrIndexRoute,
-  AppEhrPatientPatientIdRoute: AppEhrPatientPatientIdRoute,
   AppEhrPrescriptionsPatientIdRoute: AppEhrPrescriptionsPatientIdRoute,
 }
 

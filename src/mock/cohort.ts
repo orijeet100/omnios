@@ -1,7 +1,13 @@
 import type { ConditionCode, SourceId } from '../contracts'
 import { COHORT_SPEC, type CohortRow } from './cohort-spec'
 import { LAST_DAY } from './dates'
-import { FIRST_NAMES_F, FIRST_NAMES_M, LAST_NAMES, TIME_ZONES } from './names'
+import {
+  DEMO_CAST,
+  FIRST_NAMES_F,
+  FIRST_NAMES_M,
+  LAST_NAMES,
+  TIME_ZONES,
+} from './names'
 import {
   chance,
   hashSeed,
@@ -279,7 +285,9 @@ export function buildCohort(seed: number): PatientProfile[] {
     Array.from({ length: row.count }, () => row)
   )
   const shuffled = shuffle(mulberry32(hashSeed(seed, 'order')), rows)
-  return shuffled.map((row, index) =>
-    createProfile(row, `P${String(index + 1).padStart(3, '0')}`, seed)
-  )
+  return shuffled.map((row, index) => {
+    const id = `P${String(index + 1).padStart(3, '0')}`
+    // After every random draw, so the seed's output is untouched.
+    return { ...createProfile(row, id, seed), ...DEMO_CAST[id] }
+  })
 }
