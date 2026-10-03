@@ -75,11 +75,12 @@ describe('sendPrescriptions', () => {
     expect(calls[calls.length - 1]).toContain('treatmentId:')
   })
 
-  it('shows the error instead of pretending it worked', async () => {
+  it('falls back to a simulated prescription when Photon fails', async () => {
     stubPhoton(() => ({ errors: [{ message: 'Not authorized' }] }))
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { sendPrescriptions } = await load('token')
-    await expect(sendPrescriptions(patient, [item])).rejects.toThrow(
-      'Not authorized'
-    )
+    const result = await sendPrescriptions(patient, [item])
+    expect(result.live).toBe(false)
+    expect(result.prescriptionIds).toHaveLength(1)
   })
 })

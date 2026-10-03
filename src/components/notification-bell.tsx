@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { getApiAdapter } from '@/api'
 import { Bell } from 'lucide-react'
+import { useNotifications } from '@/hooks/use-notifications'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -22,12 +22,7 @@ const formatSent = (iso: string) =>
 export function NotificationBell() {
   const navigate = useNavigate()
   const adapter = getApiAdapter()
-  // The adapter mutates its notifications in place, so skip structural sharing.
-  const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: () => [...adapter.listNotifications()],
-    structuralSharing: false,
-  })
+  const notifications = useNotifications()
   const unread = notifications.filter((n) => n.status === 'unread').length
 
   return (

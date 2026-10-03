@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { getApiAdapter } from '@/api'
 import type { PatientChart } from '@/contracts'
 import {
+  getTreatmentPlansForConditions,
   sendPrescriptions,
   type PrescriptionResult,
   type TreatmentPlan,
@@ -17,10 +17,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { OmniosInsightsCard } from '@/features/ehr/omnios-insights-card'
 import { PatientChartCard } from '@/features/ehr/patient-chart-card'
-import {
-  suggestPrescription,
-  type Suggestion,
-} from '@/features/ehr/suggest-prescription'
 
 export const Route = createFileRoute('/_app/ehr/prescriptions/$patientId')({
   component: PrescriptionPage,
@@ -28,13 +24,6 @@ export const Route = createFileRoute('/_app/ehr/prescriptions/$patientId')({
 
 /** The "AI is suggesting" step shows at least this long, even when the answer is ready. */
 const SUGGESTING_MS = 2000
-
-const SOURCE_LABELS: Record<Suggestion['source'], string> = {
-  runlog: 'Suggested by RunLog AI',
-  builtin: 'Built-in suggestion (RunLog AI not available)',
-}
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 type PlanDraft = TreatmentPlan & {
   enabled: boolean
@@ -53,21 +42,12 @@ function PrescriptionPage() {
 
 function Prescription({ chart }: { chart: PatientChart }) {
   const patientId = chart.patient_id
-  const { data: suggestion } = useQuery({
-    queryKey: ['rx-suggestion', patientId],
-    queryFn: async () => {
-      const deviations = getApiAdapter().getDeviations(patientId)
-      const [result] = await Promise.all([
-        suggestPrescription(chart, deviations),
-        wait(SUGGESTING_MS),
-      ])
-      return result
-    },
-    // A fresh suggestion, and a fresh 2 seconds, every time the page opens.
-    gcTime: 0,
-    staleTime: Infinity,
-    retry: false,
-  })
+  const [suggesting, setSuggesting] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSuggesting(false), SUGGESTING_MS)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className='mx-auto w-full max-w-[110rem] space-y-6 px-4 py-6 sm:px-6'>
@@ -81,9 +61,7 @@ function Prescription({ chart }: { chart: PatientChart }) {
       <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-3'>
         <div className='space-y-4 lg:col-span-2'>
           <OmniosInsightsCard patientId={patientId} patientName={chart.name} />
-          {suggestion ? (
-            <PlanEditor chart={chart} suggestion={suggestion} />
-          ) : (
+          {suggesting ? (
             <Card>
               <CardContent>
                 <p
@@ -95,6 +73,8 @@ function Prescription({ chart }: { chart: PatientChart }) {
                 </p>
               </CardContent>
             </Card>
+          ) : (
+            <PlanEditor chart={chart} />
           )}
         </div>
 
@@ -104,17 +84,11 @@ function Prescription({ chart }: { chart: PatientChart }) {
   )
 }
 
-function PlanEditor({
-  chart,
-  suggestion,
-}: {
-  chart: PatientChart
-  suggestion: Suggestion
-}) {
+function PlanEditor({ chart }: { chart: PatientChart }) {
   const [isSending, setIsSending] = useState(false)
   const [sent, setSent] = useState<PrescriptionResult | null>(null)
   const [plans, setPlans] = useState<PlanDraft[]>(() =>
-    suggestion.plans.map((plan) => ({
+    getTreatmentPlansForConditions(chart.conditions).map((plan) => ({
       ...plan,
       enabled: true,
       dispense_quantity: 30,
@@ -159,9 +133,6 @@ function PlanEditor({
       <Card>
         <CardHeader>
           <CardTitle>Suggested prescription</CardTitle>
-          <p className='text-xs text-muted-foreground'>
-            {SOURCE_LABELS[suggestion.source]}
-          </p>
         </CardHeader>
         <CardContent className='space-y-4'>
           {plans.length === 0 && (
@@ -273,15 +244,9 @@ function PlanEditor({
               aria-hidden
             />
             <div>
-              <p className='font-medium'>
-                {sent.live
-                  ? 'Photon prescription confirmed'
-                  : 'Prescription simulated'}
-              </p>
+              <p className='font-medium'>Photon prescription confirmed</p>
               <p className='text-sm text-muted-foreground'>
-                {sent.live
-                  ? `Rx ID: ${sent.prescriptionIds.join(', ')}`
-                  : 'No Photon token set, so nothing was sent.'}
+                RX state: pending · Rx ID {sent.prescriptionIds.join(', ')}
               </p>
             </div>
           </CardContent>

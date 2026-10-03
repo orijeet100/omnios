@@ -16,7 +16,7 @@ standing in for a backend that does not exist yet. Everything is synthetic.
 | `docs/design-brief.md` | The 25 rules every screen must follow (type scale, tokens, arrows, modal, charts). |
 | `docs/api-contract.md` + `src/contracts/` | The backend contract. The mock and the real backend must both match it. |
 | `src/mock/README.md` | The data generator: what to port, what is scaffolding. |
-| `docs/physician-view.md` | The Physician view: RunLog AI suggestion, Photon prescription, `.env` variables. |
+| `docs/physician-view.md` | The Physician view: the inbox, the prescription page, Photon, `.env` variables. |
 
 ## Non-negotiable product rules
 

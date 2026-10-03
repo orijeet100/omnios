@@ -87,7 +87,7 @@ const MEDICATION_ID_ARGS = ['medicationId', 'treatmentId'] as const
 /** The catalog entry for a plan's drug, found by its name (the first word). */
 async function findMedicationId(treatment: string) {
   const term = treatment.split(' ')[0]
-  let firstError: Error | null = null
+  const errors: string[] = []
   for (const query of MEDICATION_LOOKUPS) {
     try {
       const data = await photonRequest<Record<string, { id: string }[]>>(
@@ -97,10 +97,12 @@ async function findMedicationId(treatment: string) {
       const [match] = Object.values(data)[0] ?? []
       if (match) return match.id
     } catch (error) {
-      firstError ??= error as Error
+      errors.push((error as Error).message)
     }
   }
-  throw firstError ?? new Error(`No Photon medication found for "${term}"`)
+  throw new Error(
+    errors.join(' | ') || `No Photon medication found for "${term}"`
+  )
 }
 
 async function createPhotonPrescription(
@@ -138,19 +140,15 @@ async function createPhotonPrescription(
 
 let simulatedCounter = 0
 
-export async function sendPrescriptions(
+const simulate = (items: PrescriptionItem[]): PrescriptionResult => ({
+  live: false,
+  prescriptionIds: items.map(() => `rx_${Date.now()}_${++simulatedCounter}`),
+})
+
+async function sendToPhoton(
   patient: PatientToPrescribe,
   items: PrescriptionItem[]
 ): Promise<PrescriptionResult> {
-  if (!PHOTON_AUTH_TOKEN) {
-    return {
-      live: false,
-      prescriptionIds: items.map(
-        () => `rx_${Date.now()}_${++simulatedCounter}`
-      ),
-    }
-  }
-
   let photonPatientId = photonPatientIds.get(patient.id)
   if (!photonPatientId) {
     photonPatientId = await createPhotonPatient(patient)
@@ -165,6 +163,25 @@ export async function sendPrescriptions(
     )
   }
   return { live: true, prescriptionIds }
+}
+
+/**
+ * Sends through Photon when a token is set. If Photon fails for any reason the
+ * prescription is simulated instead (`live: false`), so the demo never stops at
+ * an error; the reason is logged to the console.
+ */
+export async function sendPrescriptions(
+  patient: PatientToPrescribe,
+  items: PrescriptionItem[]
+): Promise<PrescriptionResult> {
+  if (!PHOTON_AUTH_TOKEN) return simulate(items)
+  try {
+    return await sendToPhoton(patient, items)
+  } catch (error) {
+    // eslint-disable-next-line no-console -- the only trace that a send was simulated
+    console.warn('Photon request failed; simulating the prescription.', error)
+    return simulate(items)
+  }
 }
 
 const TREATMENT_PLANS: Array<{

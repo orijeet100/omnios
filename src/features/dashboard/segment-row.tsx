@@ -21,16 +21,20 @@ const ICONS: Partial<Record<SegmentId, LucideIcon>> = {
 
 const TRENDS: Record<
   SegmentCardData['trend'],
-  { Icon: LucideIcon; label: string }
+  { Icon: LucideIcon; label: string; color: string }
 > = {
-  up: { Icon: TrendingUp, label: 'Worsening' },
-  down: { Icon: TrendingDown, label: 'Improving' },
-  flat: { Icon: Minus, label: 'Steady' },
+  up: { Icon: TrendingUp, label: 'Worsening', color: 'text-destructive' },
+  down: { Icon: TrendingDown, label: 'Improving', color: 'text-success' },
+  flat: { Icon: Minus, label: 'Steady', color: 'text-muted-foreground' },
 }
 
 export function SegmentRow({ segment }: { segment: SegmentCardData }) {
   const Icon = ICONS[segment.id] ?? Activity
-  const { Icon: TrendIcon, label: trendLabel } = TRENDS[segment.trend]
+  const {
+    Icon: TrendIcon,
+    label: trendLabel,
+    color: trendColor,
+  } = TRENDS[segment.trend]
 
   return (
     <Link
@@ -46,7 +50,7 @@ export function SegmentRow({ segment }: { segment: SegmentCardData }) {
           <span className='min-w-0 flex-1 text-start font-semibold'>
             {segment.label}
           </span>
-          <span className='flex items-center gap-1.5 text-sm text-muted-foreground'>
+          <span className={`flex items-center gap-1.5 text-sm ${trendColor}`}>
             <TrendIcon className='size-4' aria-hidden />
             {trendLabel}
           </span>
