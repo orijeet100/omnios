@@ -1,21 +1,16 @@
 import { Main } from '@/components/layout/main'
 import { AllViolations } from './all-violations'
 import { SegmentRow } from './segment-row'
-import { formatWeek, getDashboard } from './segments'
+import { getDashboard } from './segments'
 
 export function Dashboard() {
-  const { weekStart, cards } = getDashboard()
+  const { cards } = getDashboard()
 
   return (
     <Main className='space-y-6'>
-      <div className='space-y-1'>
-        <h1 className='text-2xl font-bold tracking-tight'>
-          Patients showing abnormalities
-        </h1>
-        <p className='text-sm text-muted-foreground'>
-          Week of {formatWeek(weekStart)}
-        </p>
-      </div>
+      <h1 className='text-2xl font-bold tracking-tight'>
+        Patients showing abnormalities
+      </h1>
       <div className='space-y-3'>
         {cards.map((segment) => (
           <SegmentRow key={segment.id} segment={segment} />

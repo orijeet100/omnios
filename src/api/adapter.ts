@@ -3,8 +3,10 @@ import {
   buildTierCounts,
   buildWorklist,
   checkReescalation,
+  computeBaselines,
   computeBaselinesForAll,
   computeConfidenceForAll,
+  computeDeviations,
   computeDeviationsForAll,
   computeRiskForAll,
   generateInsightFeatures,
@@ -108,7 +110,15 @@ export class MockApiAdapter {
     return [...sourceSet] as SourceId[]
   }
 
+  /** Analysis of the whole cohort, reused until the data or the clock changes. */
+  private analysis: ReturnType<MockApiAdapter['computeAnalysis']> | null = null
+
   private runAnalysis() {
+    this.analysis ??= this.computeAnalysis()
+    return this.analysis
+  }
+
+  private computeAnalysis() {
     const patientIds = this.dataset.profiles.map((p) => p.id)
 
     const baselines = computeBaselinesForAll(
@@ -259,6 +269,13 @@ export class MockApiAdapter {
       worklist: worklistItem,
       insight,
     }
+  }
+
+  /** One patient's change against their usual, without analysing the cohort. */
+  getDeviations(patientId: string) {
+    const { resolved } = this.dataset
+    const baselines = computeBaselines(resolved, patientId, this.asOf)
+    return computeDeviations(resolved, patientId, baselines, this.asOf)
   }
 
   getEhrChart(patientId: string): PatientChart | null {
@@ -516,6 +533,7 @@ export class MockApiAdapter {
     this.dataset.observations.push(...newObs)
 
     this.dataset.resolved = resolve(this.dataset.observations)
+    this.analysis = null
 
     const worklist = this.listWorklist()
     return worklist.find((w) => w.patient_id === patientId) ?? null
@@ -525,6 +543,7 @@ export class MockApiAdapter {
     const current = new Date(this.asOf)
     current.setDate(current.getDate() + days)
     this.asOf = current.toISOString().slice(0, 10)
+    this.analysis = null
     return { now: current.toISOString() }
   }
 

@@ -1,12 +1,8 @@
-import { useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getApiAdapter } from '@/api'
-import { AlertTriangle, CheckCircle, Clock, User, Pill } from 'lucide-react'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -15,177 +11,100 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { outOfRangeLabels, sexLabel } from '@/features/patients/data'
+import { PatientAvatar } from '@/features/patients/patient-avatar'
 
 export const Route = createFileRoute('/_app/ehr/')({
-  component: () => <RouteComponent />,
+  component: EhrInbox,
 })
 
-function getPriorityColor(priority: string) {
-  switch (priority) {
-    case 'high':
-      return 'bg-red-100 text-red-800'
-    case 'medium':
-      return 'bg-amber-100 text-amber-800'
-    default:
-      return 'bg-gray-100 text-gray-800'
-  }
-}
+const capitalize = (word: string) =>
+  word.charAt(0).toUpperCase() + word.slice(1)
 
-function getPriorityIcon(priority: string) {
-  switch (priority) {
-    case 'high':
-      return <AlertTriangle className='h-4 w-4 text-red-600' />
-    case 'medium':
-      return <Clock className='h-4 w-4 text-amber-600' />
-    default:
-      return <Clock className='h-4 w-4 text-gray-600' />
-  }
-}
-
-function RouteComponent() {
+function EhrInbox() {
   const navigate = useNavigate()
   const adapter = getApiAdapter()
   const notifications = adapter.listNotifications()
-
-  useEffect(() => {
-    const adapter = getApiAdapter()
-    adapter.runSync()
-  }, [])
+  const unread = notifications.filter((n) => n.status === 'unread').length
 
   return (
-    <div className='space-y-6 p-6'>
+    <div className='mx-auto w-full max-w-[110rem] space-y-6 px-4 py-6 sm:px-6'>
       <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold'>EHR Inbox</h1>
-          <p className='text-sm text-muted-foreground'>
-            Notifications from OmniOS platform
-          </p>
-        </div>
-        <Badge variant='outline' className='gap-1'>
-          <AlertTriangle className='h-3 w-3' />
-          {notifications.filter((n) => n.status === 'unread').length} new
-        </Badge>
+        <h1 className='text-2xl font-bold tracking-tight'>Inbox</h1>
+        <Badge variant='outline'>{unread} new</Badge>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-        </CardHeader>
+      <Card className='py-0'>
         <CardContent className='p-0'>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Patient</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Insight</TableHead>
+                <TableHead className='ps-6'>Patient</TableHead>
+                <TableHead>Parameters outside normal range</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className='text-right'>Actions</TableHead>
+                <TableHead className='pe-6 text-end'>
+                  <span className='sr-only'>Open</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {notifications.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
-                    className='py-12 text-center text-slate-500'
+                    colSpan={4}
+                    className='py-12 text-center text-muted-foreground'
                   >
-                    No notifications
+                    No patients sent yet.
                   </TableCell>
                 </TableRow>
               ) : (
                 notifications.map((n) => {
-                  const ehrContext = adapter.getEhrContext(n.patient_id)
-                  const chart = ehrContext.chart
+                  const chart = adapter.getEhrChart(n.patient_id)
+                  const open = () =>
+                    navigate({ to: `/ehr/patient/${n.patient_id}` })
                   return (
                     <TableRow
                       key={n.id}
-                      className='group cursor-pointer hover:bg-muted/50'
-                      onClick={() =>
-                        navigate({ to: `/ehr/patient/${n.patient_id}` })
-                      }
+                      className='cursor-pointer'
+                      onClick={open}
                     >
-                      <TableCell>
+                      <TableCell className='ps-6'>
                         <div className='flex items-center gap-3'>
-                          <div className='flex h-10 w-10 items-center justify-center rounded-full bg-slate-200'>
-                            <User className='h-5 w-5 text-slate-600' />
-                          </div>
+                          {chart && (
+                            <PatientAvatar
+                              id={chart.patient_id}
+                              sex={chart.sex}
+                              className='size-10'
+                            />
+                          )}
                           <div>
                             <div className='font-semibold'>
-                              {chart?.name || n.patient_id}
+                              {chart?.name ?? n.patient_id}
                             </div>
-                            <div className='text-sm text-slate-500'>
-                              {chart?.age}y · {chart?.sex} · MRN: {n.patient_id}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className='flex items-center gap-2'>
-                          {getPriorityIcon(n.priority ?? 'medium')}
-                          <Badge
-                            className={cn(
-                              'text-xs',
-                              getPriorityColor(n.priority ?? 'low')
+                            {chart && (
+                              <div className='text-xs text-muted-foreground'>
+                                {chart.age} · {sexLabel(chart.sex)}
+                              </div>
                             )}
-                          >
-                            {n.priority ?? 'medium'}
-                          </Badge>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className='max-w-xs'>
-                          <div className='line-clamp-2 text-sm'>
-                            {n.message ||
-                              ehrContext.insight?.what_changed ||
-                              'Patient trending outside normal parameters'}
-                          </div>
-                          {ehrContext.insight?.suggestion && (
-                            <div className='mt-1 text-xs text-slate-500 italic'>
-                              {ehrContext.insight.suggestion}
-                            </div>
-                          )}
-                        </div>
+                        {outOfRangeLabels(n.patient_id).join(', ') || '–'}
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant={
                             n.status === 'unread' ? 'default' : 'outline'
                           }
-                          className='text-xs'
                         >
-                          {n.status}
+                          {capitalize(n.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell className='text-right'>
-                        <div className='flex justify-end gap-2'>
-                          <Button
-                            variant='ghost'
-                            size='sm'
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              adapter.actOnNotification(
-                                n.id,
-                                'acknowledge',
-                                'physician-001'
-                              )
-                              toast.success('Notification acknowledged')
-                            }}
-                          >
-                            <CheckCircle className='h-4 w-4' />
-                          </Button>
-                          <Button
-                            size='sm'
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              navigate({
-                                to: `/ehr/prescriptions/${n.patient_id}`,
-                              })
-                            }}
-                          >
-                            <Pill className='h-4 w-4' />
-                            Prescribe
-                          </Button>
-                        </div>
+                      <TableCell className='pe-6 text-end'>
+                        <Button variant='outline' size='sm' onClick={open}>
+                          Open
+                        </Button>
                       </TableCell>
                     </TableRow>
                   )

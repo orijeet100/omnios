@@ -135,10 +135,6 @@ export async function createPrescription(
   }
 }
 
-export function getPhotonSandboxUrl(): string {
-  return PHOTON_API_URL
-}
-
 const TREATMENT_PLANS: Array<{
   match: string
   treatment: string
@@ -177,20 +173,4 @@ export function getTreatmentPlansForConditions(
   conditions: string[]
 ): TreatmentPlan[] {
   return TREATMENT_PLANS.filter((p) => conditions.includes(p.match))
-}
-
-export function getTreatmentForConditions(conditions: string[]): string {
-  const plan = TREATMENT_PLANS.find((p) => conditions.includes(p.match))
-  return plan
-    ? plan.treatment
-    : 'Consult the care plan for the next pharmacologic step'
-}
-
-export function getTreatmentInstructions(conditions: string[]): string {
-  const instructions = TREATMENT_PLANS.filter((p) =>
-    conditions.includes(p.match)
-  ).map((p) => `${p.treatment}. ${p.instructions}`)
-  return instructions.length > 0
-    ? instructions.join(' ')
-    : 'Continue current management and schedule a follow-up based on the wearable trend.'
 }
