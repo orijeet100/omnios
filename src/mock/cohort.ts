@@ -126,7 +126,7 @@ function planFor(rng: Rng, row: CohortRow): Plan {
           ? { tir0: rnd(rng, 48, 62) }
           : {
               tir0: rnd(rng, 78, 84),
-              shiftDay: int(rng, 56, 70),
+              shiftDay: int(rng, 70, 80),
               shiftTo: rnd(rng, 48, 58),
             },
       }
@@ -145,13 +145,16 @@ function planFor(rng: Rng, row: CohortRow): Plan {
             tir: { tir0: rnd(rng, 50, 56), improveTo: rnd(rng, 79, 84) },
           }
     case 'acute_decliner': {
-      const onset = int(rng, 74, 76)
+      // ER patients decline early enough to be flagged a full week before the
+      // ER visit (lead time). Patients with no ER visit decline later, so the
+      // early-warning signal is still climbing in the final displayed week.
+      const onset = row.er ? int(rng, 70, 73) : int(rng, 80, 84)
       return {
         bp: controlledBp(rng),
         tir: { tir0: controlledTir(rng) },
         decline: {
           onset,
-          erDay: row.er ? onset + int(rng, 10, 12) : undefined,
+          erDay: row.er ? LAST_DAY : undefined,
         },
       }
     }

@@ -3,8 +3,9 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getApiAdapter } from '@/api'
 import {
   createPrescription,
-  getTreatmentForConditions,
-  getTreatmentInstructions,
+  getTreatmentPlansForConditions,
+  getPhotonSandboxUrl,
+  type PhotonPrescription,
 } from '@/integrations/photon'
 import { Bell, Pill, Activity, User } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { RunlogChat } from '@/features/ehr/runlog-chat'
 
 export const Route = createFileRoute('/_app/ehr/prescriptions/$patientId')({
   component: () => <RouteComponent />,
@@ -34,38 +36,42 @@ function RouteComponent() {
   const insight = adapter.getInsight(patientId)
 
   const conditions = chart?.conditions ?? []
-  const defaultTreatment = getTreatmentForConditions(conditions)
-  const defaultInstructions = getTreatmentInstructions(conditions)
 
-  const [treatmentName, setTreatmentName] = useState(defaultTreatment)
-  const [instructions, setInstructions] = useState(defaultInstructions)
+  const [plans, setPlans] = useState(() =>
+    getTreatmentPlansForConditions(conditions).map((p) => ({
+      ...p,
+      enabled: true,
+      dispense_quantity: 30,
+      dispense_unit: 'days',
+      days_supply: 30,
+    }))
+  )
+  const [sent, setSent] = useState<{
+    prescription: PhotonPrescription
+    fromApi: boolean
+  } | null>(null)
 
   const handlePrescribe = async () => {
     setIsSubmitting(true)
     try {
+      const selected = plans.filter((p) => p.enabled)
       const result = await createPrescription(
         {
           patient_id: patientId,
-          treatment_name: treatmentName,
-          dispense_quantity: 30,
-          dispense_unit: 'days',
-          days_supply: 30,
-          instructions,
+          treatment_name: selected.map((p) => p.treatment).join('; '),
+          dispense_quantity: selected.length
+            ? Math.max(...selected.map((p) => p.dispense_quantity))
+            : 30,
+          dispense_unit: selected.length ? selected[0].dispense_unit : 'days',
+          days_supply: selected.length
+            ? Math.max(...selected.map((p) => p.days_supply))
+            : 30,
+          instructions: selected.map((p) => p.instructions).join(' '),
           diagnoses: conditions,
         },
         chart?.name ?? 'Unknown Patient'
       )
-
-      if (result.fromApi) {
-        alert(
-          `Prescription sent to Photon\nRx ID: ${result.prescription.id}\nState: ${result.prescription.state}`
-        )
-      } else {
-        alert(
-          `Prescription created (mock mode)\nRx ID: ${result.prescription.id}`
-        )
-      }
-      navigate({ to: '/ehr' })
+      setSent(result)
     } catch {
       alert('Failed to create prescription')
     } finally {
@@ -138,58 +144,142 @@ function RouteComponent() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Treatment</CardTitle>
+              <CardTitle>Treatment plan</CardTitle>
               <CardDescription>
-                Pre-filled based on patient conditions
+                Select and edit a Photon prescription card per condition.
               </CardDescription>
             </CardHeader>
-            <CardContent className='space-y-4'>
-              <div>
-                <Label htmlFor='treatment'>Treatment (name + dose)</Label>
-                <Input
-                  id='treatment'
-                  value={treatmentName}
-                  onChange={(e) => setTreatmentName(e.target.value)}
-                  className='mt-1'
-                />
-              </div>
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <Label htmlFor='quantity'>Quantity</Label>
+            <CardContent className='space-y-3'>
+              {plans.length === 0 && (
+                <p className='text-sm text-muted-foreground'>
+                  No automated treatment plan is suggested for these conditions.
+                </p>
+              )}
+              {plans.map((plan) => (
+                <div
+                  key={plan.match}
+                  className={`rounded-lg border p-4 transition-colors ${
+                    plan.enabled
+                      ? 'border-primary/40 bg-primary/5'
+                      : 'border-border bg-muted/20 opacity-70'
+                  }`}
+                >
+                  <label className='flex cursor-pointer items-center gap-2'>
+                    <input
+                      type='checkbox'
+                      checked={plan.enabled}
+                      onChange={(e) =>
+                        setPlans((prev) =>
+                          prev.map((p) =>
+                            p.match === plan.match
+                              ? { ...p, enabled: e.target.checked }
+                              : p
+                          )
+                        )
+                      }
+                      className='size-4 accent-foreground'
+                    />
+                    <span className='text-xs font-semibold tracking-wide text-muted-foreground uppercase'>
+                      {plan.match.replace('_', ' ')}
+                    </span>
+                  </label>
+
                   <Input
-                    id='quantity'
-                    type='number'
-                    defaultValue={30}
-                    min={1}
-                    max={999}
-                    className='mt-1'
+                    value={plan.treatment}
+                    disabled={!plan.enabled}
+                    onChange={(e) =>
+                      setPlans((prev) =>
+                        prev.map((p) =>
+                          p.match === plan.match
+                            ? { ...p, treatment: e.target.value }
+                            : p
+                        )
+                      )
+                    }
+                    className='mt-3 font-medium'
                   />
-                </div>
-                <div>
-                  <Label htmlFor='days-supply'>Days Supply</Label>
-                  <Input
-                    id='days-supply'
-                    type='number'
-                    defaultValue={30}
-                    min={1}
-                    max={365}
-                    className='mt-1'
+
+                  <Textarea
+                    value={plan.instructions}
+                    disabled={!plan.enabled}
+                    onChange={(e) =>
+                      setPlans((prev) =>
+                        prev.map((p) =>
+                          p.match === plan.match
+                            ? { ...p, instructions: e.target.value }
+                            : p
+                        )
+                      )
+                    }
+                    rows={3}
+                    className='mt-3 text-sm'
                   />
+
+                  <div className='mt-3 grid grid-cols-3 gap-3'>
+                    <div>
+                      <Label>Quantity</Label>
+                      <Input
+                        type='number'
+                        min={1}
+                        max={999}
+                        value={plan.dispense_quantity}
+                        disabled={!plan.enabled}
+                        onChange={(e) =>
+                          setPlans((prev) =>
+                            prev.map((p) =>
+                              p.match === plan.match
+                                ? {
+                                    ...p,
+                                    dispense_quantity: Number(e.target.value),
+                                  }
+                                : p
+                            )
+                          )
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label>Unit</Label>
+                      <Input
+                        value={plan.dispense_unit}
+                        disabled={!plan.enabled}
+                        onChange={(e) =>
+                          setPlans((prev) =>
+                            prev.map((p) =>
+                              p.match === plan.match
+                                ? { ...p, dispense_unit: e.target.value }
+                                : p
+                            )
+                          )
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label>Days supply</Label>
+                      <Input
+                        type='number'
+                        min={1}
+                        max={365}
+                        value={plan.days_supply}
+                        disabled={!plan.enabled}
+                        onChange={(e) =>
+                          setPlans((prev) =>
+                            prev.map((p) =>
+                              p.match === plan.match
+                                ? { ...p, days_supply: Number(e.target.value) }
+                                : p
+                            )
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <Label htmlFor='instructions'>Instructions</Label>
-                <Textarea
-                  id='instructions'
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  placeholder='One tablet daily, with or without food'
-                  rows={4}
-                  className='mt-1'
-                />
-              </div>
+              ))}
             </CardContent>
           </Card>
+
+          <RunlogChat patientId={patientId} patientName={chart.name} />
         </div>
 
         <div className='space-y-6'>
@@ -300,7 +390,7 @@ function RouteComponent() {
           <Button
             className='w-full'
             size='lg'
-            disabled={isSubmitting || !treatmentName || !instructions}
+            disabled={isSubmitting || !plans.some((p) => p.enabled)}
             onClick={handlePrescribe}
           >
             {isSubmitting ? 'Sending...' : 'Send Prescription'}
@@ -313,6 +403,69 @@ function RouteComponent() {
           >
             Back to Inbox
           </Button>
+
+          {sent && (
+            <Card className='border-green-200 bg-green-50'>
+              <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                  <Pill className='h-4 w-4 text-green-600' />
+                  Photon Prescription Confirmed
+                </CardTitle>
+                <CardDescription>
+                  {sent.fromApi
+                    ? 'Sent via the Photon (Neutron Health) API'
+                    : 'Captured in mock mode — set VITE_PHOTON_AUTH_TOKEN to send via the Photon API'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <dl className='space-y-1 text-sm'>
+                  <div className='flex justify-between'>
+                    <dt className='text-muted-foreground'>Rx ID</dt>
+                    <dd className='font-mono'>{sent.prescription.id}</dd>
+                  </div>
+                  <div className='flex justify-between'>
+                    <dt className='text-muted-foreground'>State</dt>
+                    <dd>
+                      <Badge variant='secondary' className='text-xs'>
+                        {sent.prescription.state}
+                      </Badge>
+                    </dd>
+                  </div>
+                  <div className='flex justify-between'>
+                    <dt className='text-muted-foreground'>For</dt>
+                    <dd>{sent.prescription.patient_name}</dd>
+                  </div>
+                  <div className='flex justify-between'>
+                    <dt className='text-muted-foreground'>Diagnosis codes</dt>
+                    <dd>{sent.prescription.diagnoses.join(', ')}</dd>
+                  </div>
+                </dl>
+                <div className='mt-3 rounded border bg-background p-3'>
+                  <p className='text-sm font-medium'>Prescription</p>
+                  <p className='text-sm'>{sent.prescription.treatment_name}</p>
+                  <p className='mt-1 text-xs text-muted-foreground'>
+                    {sent.prescription.instructions}
+                  </p>
+                </div>
+                <pre className='mt-3 overflow-x-auto rounded bg-slate-900 p-3 text-[11px] leading-relaxed text-slate-100'>
+                  {`mutation CreatePrescription {
+  createPrescription(input: {
+    patientId: "${sent.prescription.patient_id}",
+    treatmentName: "${sent.prescription.treatment_name}",
+    dispenseQuantity: ${sent.prescription.dispense_quantity},
+    dispenseUnit: "${sent.prescription.dispense_unit}",
+    daysSupply: ${sent.prescription.days_supply},
+    diagnoses: [${sent.prescription.diagnoses.map((d) => `"${d}"`).join(', ')}]
+  }) {
+    id state
+  }
+}
+# POST ${getPhotonSandboxUrl()}
+# Rx ID: ${sent.prescription.id} · state: ${sent.prescription.state}`}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

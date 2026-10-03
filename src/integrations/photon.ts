@@ -139,43 +139,58 @@ export function getPhotonSandboxUrl(): string {
   return PHOTON_API_URL
 }
 
+const TREATMENT_PLANS: Array<{
+  match: string
+  treatment: string
+  instructions: string
+}> = [
+  {
+    match: 'hypertension',
+    treatment: 'Lisinopril 10 mg once daily',
+    instructions:
+      'Take at the same time each day. Reinforce daily home BP logging and review the wearable BP trend with each follow-up; dose adjustment is a clinician decision.',
+  },
+  {
+    match: 't2_diabetes',
+    treatment: 'Metformin 500 mg twice daily with meals',
+    instructions:
+      "Take with morning and evening meals. Pair with the patient's CGM time-in-range trend in the chart; clinician-titrate dose based on glucose control and renal function.",
+  },
+  {
+    match: 'heart_failure',
+    treatment: 'Carvedilol 6.25 mg twice daily',
+    instructions:
+      'Take with food. Institute daily weight logging and notify the care team for a gain of more than 2 kg over 2 days; escalate increased dyspnea or edema symptoms.',
+  },
+  {
+    match: 'copd',
+    treatment: 'Albuterol HFA 90 mcg, 2 puffs every 4-6 hours as needed',
+    instructions:
+      'Use for wheeze or shortness of breath; check inhaler technique and avoid known triggers. Review recent recovery and SpO2 trends before stepping therapy.',
+  },
+]
+
+export type TreatmentPlan = (typeof TREATMENT_PLANS)[number]
+
+/** Every plan matching the patient's conditions, for the plan builder UI. */
+export function getTreatmentPlansForConditions(
+  conditions: string[]
+): TreatmentPlan[] {
+  return TREATMENT_PLANS.filter((p) => conditions.includes(p.match))
+}
+
 export function getTreatmentForConditions(conditions: string[]): string {
-  if (conditions.includes('hypertension')) {
-    return 'Lisinopril 10mg daily (POC demo)'
-  }
-  if (conditions.includes('t2_diabetes')) {
-    return 'Metformin 500mg twice daily (POC demo)'
-  }
-  if (conditions.includes('heart_failure')) {
-    return 'Carvedilol 6.25mg daily (POC demo)'
-  }
-  if (conditions.includes('copd')) {
-    return 'Albuterol inhaler 2 puffs BID PRN (POC demo)'
-  }
-  return 'Medication review recommended'
+  const plan = TREATMENT_PLANS.find((p) => conditions.includes(p.match))
+  return plan
+    ? plan.treatment
+    : 'Consult the care plan for the next pharmacologic step'
 }
 
 export function getTreatmentInstructions(conditions: string[]): string {
-  const treatments = []
-  if (conditions.includes('hypertension')) {
-    treatments.push(
-      'Monitor BP daily. Lisinopril 10mg daily for hypertension management.'
-    )
-  }
-  if (conditions.includes('t2_diabetes')) {
-    treatments.push(
-      'Metformin 500mg twice daily with meals. Monitor fasting glucose.'
-    )
-  }
-  if (conditions.includes('heart_failure')) {
-    treatments.push('Carvedilol 6.25mg daily. Monitor weight and symptoms.')
-  }
-  if (conditions.includes('copd')) {
-    treatments.push(
-      'Albuterol inhaler 2 puffs BID PRN for wheezing. Avoid triggers.'
-    )
-  }
-  return treatments.length > 0
-    ? treatments.join(' ')
-    : 'Follow-up recommended based on wearable trends.'
+  const instructions = TREATMENT_PLANS.filter((p) =>
+    conditions.includes(p.match)
+  ).map((p) => `${p.treatment}. ${p.instructions}`)
+  return instructions.length > 0
+    ? instructions.join(' ')
+    : 'Continue current management and schedule a follow-up based on the wearable trend.'
 }

@@ -1,7 +1,7 @@
-import { useNavigate } from '@tanstack/react-router'
-import { Activity, Users, Stethoscope } from 'lucide-react'
+import { useLocation, useNavigate } from '@tanstack/react-router'
+import { Activity, Stethoscope, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useRole, type Role, ROLE_LABELS } from '@/context/role-provider'
+import { type Role, ROLE_LABELS } from '@/context/role-provider'
 
 const ROLE_ICONS: Record<Role, React.ReactNode> = {
   phm: <Activity className='h-4 w-4' />,
@@ -15,12 +15,19 @@ const ROLE_ROUTES: Record<Role, string> = {
   physician: '/ehr',
 }
 
+/** The highlighted role follows the current page, not a clicked flag. */
+function roleForPath(pathname: string): Role {
+  if (pathname.startsWith('/ehr')) return 'physician'
+  if (pathname.startsWith('/patients')) return 'cm'
+  return 'phm'
+}
+
 export function RoleToggle() {
-  const { role, setRole } = useRole()
+  const { pathname } = useLocation()
   const navigate = useNavigate()
+  const role = roleForPath(pathname)
 
   const handleRoleChange = (newRole: Role) => {
-    setRole(newRole)
     navigate({ to: ROLE_ROUTES[newRole] })
   }
 

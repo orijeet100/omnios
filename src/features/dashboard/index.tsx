@@ -1,4 +1,5 @@
 import { Main } from '@/components/layout/main'
+import { AllViolations } from './all-violations'
 import { SegmentRow } from './segment-row'
 import { formatWeek, getDashboard } from './segments'
 
@@ -20,6 +21,7 @@ export function Dashboard() {
           <SegmentRow key={segment.id} segment={segment} />
         ))}
       </div>
+      <AllViolations />
     </Main>
   )
 }

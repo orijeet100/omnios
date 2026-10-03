@@ -97,7 +97,13 @@ function RouteComponent() {
                   const ehrContext = adapter.getEhrContext(n.patient_id)
                   const chart = ehrContext.chart
                   return (
-                    <TableRow key={n.id} className='group'>
+                    <TableRow
+                      key={n.id}
+                      className='group cursor-pointer hover:bg-muted/50'
+                      onClick={() =>
+                        navigate({ to: `/ehr/patient/${n.patient_id}` })
+                      }
+                    >
                       <TableCell>
                         <div className='flex items-center gap-3'>
                           <div className='flex h-10 w-10 items-center justify-center rounded-full bg-slate-200'>
@@ -155,7 +161,8 @@ function RouteComponent() {
                           <Button
                             variant='ghost'
                             size='sm'
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation()
                               adapter.actOnNotification(
                                 n.id,
                                 'acknowledge',
@@ -168,11 +175,12 @@ function RouteComponent() {
                           </Button>
                           <Button
                             size='sm'
-                            onClick={() =>
+                            onClick={(e) => {
+                              e.stopPropagation()
                               navigate({
                                 to: `/ehr/prescriptions/${n.patient_id}`,
                               })
-                            }
+                            }}
                           >
                             <Pill className='h-4 w-4' />
                             Prescribe
