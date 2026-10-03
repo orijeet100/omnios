@@ -92,7 +92,7 @@ medical constraints in `context.md`.
 18. **Honest absence.** We never show a guess or a zero for missing data. A
     measurement with too little data simply shows no marker.
 19. **Plain language.** Short labels a care manager or a demo audience reads in
-    a second ("BP above normal", "Early warning signs"). No jargon like
+    a second ("Blood pressure above normal", "Early warning signs"). No jargon like
     "z-score" or "baseline delta".
 20. **Minimal text.** Titles, labels and numbers only. No explanation
     paragraphs, helper copy, or "of N" counts on cards, rows or in modals.
@@ -130,7 +130,7 @@ medical constraints in `context.md`.
 
 | Screen | Route | Content |
 |---|---|---|
-| **Dashboard** | `/` | Title "Patients showing abnormalities", then one wide row per category: BP above normal, Glucose time in range low, Early warning signs. Each shows a count and links to its patients. |
+| **Dashboard** | `/` | Title "Patients showing abnormalities", then one wide row per category: Blood pressure above normal, Glucose time in range low, Early warning signs. Each shows a count and links to its patients. |
 | **Category** | `/segments/<id>` | Square patient cards for the patients in that category; each card's arrows are the measurements that put them there. Clicking a card opens the patient modal. |
 | **All patients** | `/patients` | A search box (name, id, age, sex, condition, device; every word must match) and a square card for every patient with arrows for all their measurements. Clicking a card opens the patient modal. |
 | **Patient modal** | `?patient=<id>` on either page | See rule 24. Linkable, and the Back button closes it. |
